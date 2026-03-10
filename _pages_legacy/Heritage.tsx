@@ -16,7 +16,7 @@ const Heritage: React.FC = () => {
             Honoring the visionary founder, Dr. Jammi Venkataramanayya. Over a century of bridging ancient Ayurvedic wisdom with the rigor of modern science to serve humanity.
           </p>
           <div className="mt-10 flex flex-col sm:flex-row justify-center gap-4">
-            <button className="bg-secondary text-white px-8 py-4 rounded-full font-bold hover:bg-black transition-all shadow-lg hover:-translate-y-1">Explore Our Journey</button>
+            <a href="#milestones" className="inline-block bg-secondary text-white px-8 py-4 rounded-full font-bold hover:bg-black transition-all shadow-lg hover:-translate-y-1">Explore Our Journey</a>
             <button className="border-2 border-secondary text-secondary px-8 py-4 rounded-full font-bold hover:bg-secondary hover:text-white transition-all">View Archival Gallery</button>
           </div>
         </div>
@@ -48,7 +48,7 @@ const Heritage: React.FC = () => {
       </section>
 
       {/* Timeline Section */}
-      <section className="py-24 bg-white border-y border-slate-200">
+      <section id="milestones" className="py-24 bg-white border-y border-slate-200">
         <div className="max-w-[960px] mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="font-display text-4xl md:text-5xl font-bold text-secondary mb-4">A Century of Milestones</h2>

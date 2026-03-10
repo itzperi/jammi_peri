@@ -57,7 +57,7 @@ function ProductTemplate({ product }) {
         }
     ];
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-        className: "bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-body min-h-screen pt-20",
+        className: "bg-background-light text-slate-900 font-body min-h-screen pt-20",
         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("main", {
             className: "max-w-7xl mx-auto px-4 md:px-10 py-8",
             children: [
@@ -457,11 +457,11 @@ function ProductTemplate({ product }) {
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                     className: "w-full bg-cover bg-center rounded-3xl overflow-hidden mb-16 sm:mb-24 relative",
                     style: {
-                        backgroundImage: "url('https://images.unsplash.com/photo-1616401784845-180882ba9ba8?q=80&w=2670&auto=format&fit=crop')"
+                        backgroundImage: "url('https://images.unsplash.com/photo-1512290923902-8a9f81dc236c?q=80&w=2670&auto=format&fit=crop')"
                     },
                     children: [
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                            className: "absolute inset-0 bg-secondary/90 backdrop-blur-sm mix-blend-multiply"
+                            className: "absolute inset-0 bg-forest/80 backdrop-blur-sm"
                         }, void 0, false, {
                             fileName: "[project]/app/(public)/product/[id]/ProductTemplate.tsx",
                             lineNumber: 154,

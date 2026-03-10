@@ -1,0 +1,20 @@
+{
+  "pages": {},
+  "app": {
+    "[project]/app/admin/customers/page": [
+      "static/media/fba5a26ea33df6a3-s.p.1bbdebe6.woff2",
+      "static/media/25e51d4a4d803f16-s.p.8af6dd4a.woff2",
+      "static/media/b8692dd5c6d0dcd5-s.p.be1fece0.woff2",
+      "static/media/0b72cb7c6f05d496-s.p.8286a063.woff2",
+      "static/media/62d567dc49ca9342-s.p.c50a542f.woff2",
+      "static/media/12d95647106f9c32-s.p.af336826.woff2",
+      "static/media/2a65768255d6b625-s.p.d19752fb.woff2",
+      "static/media/e4505858a30c79c2-s.p.0f58a291.woff2",
+      "static/media/cc014fcb166cf364-s.p.e32417d2.woff2",
+      "static/media/36363bfb06833f56-s.p.d8302362.woff2",
+      "static/media/a73419dd2ba2d841-s.p.f2813c2a.woff2"
+    ]
+  },
+  "appUsingSizeAdjust": true,
+  "pagesUsingSizeAdjust": false
+}

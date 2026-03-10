@@ -29,7 +29,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           {product.label}
         </div>
       </div>
-      <h4 className="font-serif text-2xl mb-2 group-hover:text-primary transition-colors text-slate-900">{product.name}</h4>
+      <h4 className="font-sans font-bold text-2xl mb-2 group-hover:text-primary transition-colors text-slate-900">{product.name}</h4>
       <p className="text-slate-500 text-sm mb-4 font-dm line-clamp-2">{product.shortDesc}</p>
       <div className="flex items-center justify-between border-t border-primary/10 pt-4">
         <span className="text-xl font-bold text-slate-900">₹{product.price.toLocaleString()}</span>

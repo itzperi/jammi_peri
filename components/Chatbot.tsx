@@ -29,7 +29,7 @@ export default function Chatbot() {
         {
             id: 'welcome-1',
             sender: 'bot',
-            text: 'Namaste. I am Charak, your Ayurvedic AI guide. How can I assist you with Jammi Pharmaceuticals today?'
+            text: 'Namaste. I am pantulu, your Ayurvedic AI guide. How can I assist you with Jammi Pharmaceuticals today?'
         }
     ]);
     const [inputValue, setInputValue] = useState('');
@@ -159,7 +159,7 @@ export default function Chatbot() {
                             <span className="material-symbols-outlined text-primary text-xl">self_improvement</span>
                         </div>
                         <div>
-                            <h3 className="font-display font-bold text-lg leading-tight">Charak</h3>
+                            <h3 className="font-display font-bold text-lg leading-tight">pantulu</h3>
                             <p className="text-xs text-white/70 font-medium tracking-wide">Ayurvedic AI Assistant</p>
                         </div>
                     </div>
