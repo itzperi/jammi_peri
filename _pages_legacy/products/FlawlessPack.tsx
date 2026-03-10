@@ -1,5 +1,6 @@
 "use client";
 import React from 'react';
+import LiveEditable from '../../components/admin/LiveEditable';
 
 const FlawlessPack = () => {
     return (
@@ -68,7 +69,7 @@ const FlawlessPack = () => {
                                     <li><a className="hover:text-secondary" href="#">Skin & Hair Care</a></li>
                                 </ol>
                             </nav>
-                            <h1 className="text-4xl lg:text-5xl font-serif font-bold text-secondary dark:text-primary mb-2">Revitalizing & Firming Pack</h1>
+                            <h1 className="text-4xl lg:text-5xl font-serif font-bold text-secondary dark:text-primary mb-2"><LiveEditable collection="products_content" docId="flawlesspack" field="name">Revitalizing & Firming Pack</LiveEditable></h1>
                             <p className="text-xl italic text-slate-600 dark:text-slate-400 mb-6 font-serif">"Revitalize and Firm"</p>
 
                             <div className="flex items-center gap-4 mb-8">

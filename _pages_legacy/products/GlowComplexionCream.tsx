@@ -1,5 +1,6 @@
 "use client";
 import React from 'react';
+import LiveEditable from '../../components/admin/LiveEditable';
 
 const GlowComplexionCream = () => {
     return (
@@ -57,7 +58,7 @@ const GlowComplexionCream = () => {
                             <span>Shop</span> <span>/</span> <span>Skin Care</span> <span>/</span> <span className="text-primary font-bold">Moisturizers</span>
                         </nav>
                         <div>
-                            <h1 className="font-display text-5xl font-black leading-tight text-secondary dark:text-slate-100 mb-2">Glow Complexion Cream</h1>
+                            <h1 className="font-display text-5xl font-black leading-tight text-secondary dark:text-slate-100 mb-2"><LiveEditable collection="products_content" docId="glowcomplexioncream" field="name">Glow Complexion Cream</LiveEditable></h1>
                             <p className="font-display text-primary text-xl font-medium italic">Luminous Skin, Naturally</p>
                         </div>
                         <div className="flex items-center gap-4">

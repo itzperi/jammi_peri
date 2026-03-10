@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
+import LiveEditable from '../../components/admin/LiveEditable';
 
 const Mahanarayana: React.FC = () => {
     const [quantity, setQuantity] = useState(1);
@@ -61,11 +62,17 @@ const Mahanarayana: React.FC = () => {
                     {/* Details Column */}
                     <div className="flex flex-col pt-4">
                         <div className="mb-2">
-                            <h2 className="text-5xl lg:text-[3.5rem] font-bold text-secondary dark:text-primary mb-3 leading-none font-display">Mahanarayana</h2>
-                            <h3 className="text-2xl font-light text-slate-500 dark:text-slate-400 tracking-wide">Tailam</h3>
+                            <h2 className="text-5xl lg:text-[3.5rem] font-bold text-secondary dark:text-primary mb-3 leading-none font-display">
+                                <LiveEditable collection="products_content" docId="mahanarayana" field="name">Mahanarayana</LiveEditable>
+                            </h2>
+                            <h3 className="text-2xl font-light text-slate-500 dark:text-slate-400 tracking-wide">
+                                <LiveEditable collection="products_content" docId="mahanarayana" field="titleSuffix">Tailam</LiveEditable>
+                            </h3>
                         </div>
                         <p className="text-lg text-slate-600 dark:text-slate-300 mb-8 font-body leading-relaxed">
-                            The king of Ayurvedic oils. A profound, nourishing blend of over 40 herbs designed to deeply restore neuromuscular vitalty, soothe severe Vata imbalances, and rebuild physical strength.
+                            <LiveEditable collection="products_content" docId="mahanarayana" field="description" multiline>
+                                The king of Ayurvedic oils. A profound, nourishing blend of over 40 herbs designed to deeply restore neuromuscular vitalty, soothe severe Vata imbalances, and rebuild physical strength.
+                            </LiveEditable>
                         </p>
 
                         {/* Badges */}
@@ -151,8 +158,8 @@ const Mahanarayana: React.FC = () => {
                                 <span className="material-symbols-outlined text-2xl">accessibility_new</span>
                             </div>
                             <div className="absolute top-7 left-7 w-14 h-14 bg-primary/10 rounded-2xl -z-0"></div>
-                            <h4 className="text-xl font-bold text-secondary dark:text-white mb-2 font-display">Paralysis & Paresis</h4>
-                            <p className="text-slate-600 dark:text-slate-400 text-sm font-body leading-relaxed">Aids in rehabilitating nerve function and stimulating muscle activity in paralytic conditions.</p>
+                            <h4 className="text-xl font-bold text-secondary dark:text-white mb-2 font-display"><LiveEditable collection="products_content" docId="mahanarayana" field="ind1Title">Paralysis & Paresis</LiveEditable></h4>
+                            <p className="text-slate-600 dark:text-slate-400 text-sm font-body leading-relaxed"><LiveEditable collection="products_content" docId="mahanarayana" field="ind1Desc" multiline>Aids in rehabilitating nerve function and stimulating muscle activity in paralytic conditions.</LiveEditable></p>
                         </div>
                         {/* Indication 2 */}
                         <div className="relative group">
@@ -160,8 +167,8 @@ const Mahanarayana: React.FC = () => {
                                 <span className="material-symbols-outlined text-2xl">airline_seat_recline_normal</span>
                             </div>
                             <div className="absolute top-7 left-7 w-14 h-14 bg-primary/10 rounded-2xl -z-0"></div>
-                            <h4 className="text-xl font-bold text-secondary dark:text-white mb-2 font-display">Severe Osteoarthritis</h4>
-                            <p className="text-slate-600 dark:text-slate-400 text-sm font-body leading-relaxed">Rebuilds synovial fluid, reduces painful friction, and increases joint mobility.</p>
+                            <h4 className="text-xl font-bold text-secondary dark:text-white mb-2 font-display"><LiveEditable collection="products_content" docId="mahanarayana" field="ind2Title">Severe Osteoarthritis</LiveEditable></h4>
+                            <p className="text-slate-600 dark:text-slate-400 text-sm font-body leading-relaxed"><LiveEditable collection="products_content" docId="mahanarayana" field="ind2Desc" multiline>Rebuilds synovial fluid, reduces painful friction, and increases joint mobility.</LiveEditable></p>
                         </div>
                         {/* Indication 3 */}
                         <div className="relative group">
@@ -169,8 +176,8 @@ const Mahanarayana: React.FC = () => {
                                 <span className="material-symbols-outlined text-2xl">sports_gymnastics</span>
                             </div>
                             <div className="absolute top-7 left-7 w-14 h-14 bg-primary/10 rounded-2xl -z-0"></div>
-                            <h4 className="text-xl font-bold text-secondary dark:text-white mb-2 font-display">Muscle Wasting</h4>
-                            <p className="text-slate-600 dark:text-slate-400 text-sm font-body leading-relaxed">Provides intense nourishment to emaciated tissues, aiding in gaining healthy mass.</p>
+                            <h4 className="text-xl font-bold text-secondary dark:text-white mb-2 font-display"><LiveEditable collection="products_content" docId="mahanarayana" field="ind3Title">Muscle Wasting</LiveEditable></h4>
+                            <p className="text-slate-600 dark:text-slate-400 text-sm font-body leading-relaxed"><LiveEditable collection="products_content" docId="mahanarayana" field="ind3Desc" multiline>Provides intense nourishment to emaciated tissues, aiding in gaining healthy mass.</LiveEditable></p>
                         </div>
                         {/* Indication 4 */}
                         <div className="relative group">
@@ -178,8 +185,8 @@ const Mahanarayana: React.FC = () => {
                                 <span className="material-symbols-outlined text-2xl">blind</span>
                             </div>
                             <div className="absolute top-7 left-7 w-14 h-14 bg-primary/10 rounded-2xl -z-0"></div>
-                            <h4 className="text-xl font-bold text-secondary dark:text-white mb-2 font-display">Geriatric Care</h4>
-                            <p className="text-slate-600 dark:text-slate-400 text-sm font-body leading-relaxed">Combats age-related degeneration, tremors, and generalized weakness.</p>
+                            <h4 className="text-xl font-bold text-secondary dark:text-white mb-2 font-display"><LiveEditable collection="products_content" docId="mahanarayana" field="ind4Title">Geriatric Care</LiveEditable></h4>
+                            <p className="text-slate-600 dark:text-slate-400 text-sm font-body leading-relaxed"><LiveEditable collection="products_content" docId="mahanarayana" field="ind4Desc" multiline>Combats age-related degeneration, tremors, and generalized weakness.</LiveEditable></p>
                         </div>
                     </div>
                 </section>

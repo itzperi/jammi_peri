@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect } from 'react';
+import LiveEditable from '../../components/admin/LiveEditable';
 
 const DailyDew: React.FC = () => {
     useEffect(() => {
@@ -74,7 +75,7 @@ const DailyDew: React.FC = () => {
                                     <span className="text-xs font-semibold ml-1 text-slate-500">(128 reviews)</span>
                                 </div>
                             </div>
-                            <h1 className="text-4xl lg:text-5xl font-black text-forest dark:text-slate-100 leading-tight">Daily Dew Moisturizer</h1>
+                            <h1 className="text-4xl lg:text-5xl font-black text-forest dark:text-slate-100 leading-tight"><LiveEditable collection="products_content" docId="dailydew" field="name">Daily Dew Moisturizer</LiveEditable></h1>
                             <p className="text-lg text-forest/70 dark:text-slate-400 mt-2 italic font-medium">Heritage-Rich Ayurvedic Formula for Golden Glow</p>
                         </div>
 
@@ -279,19 +280,19 @@ const DailyDew: React.FC = () => {
                 <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center border-b border-white/10 pb-12 mb-12">
                     <div>
                         <span className="material-symbols-outlined text-4xl mb-4 text-brand-saffron">eco</span>
-                        <p className="font-bold text-sm">Cruelty Free</p>
+                        <p className="font-bold text-sm"><LiveEditable collection="products_content" docId="dailydew" field="benefit1Title">Cruelty Free</LiveEditable></p>
                     </div>
                     <div>
                         <span className="material-symbols-outlined text-4xl mb-4 text-brand-saffron">nature</span>
-                        <p className="font-bold text-sm">100% Vegan</p>
+                        <p className="font-bold text-sm"><LiveEditable collection="products_content" docId="dailydew" field="benefit2Title">100% Vegan</LiveEditable></p>
                     </div>
                     <div>
                         <span className="material-symbols-outlined text-4xl mb-4 text-brand-saffron">biotech</span>
-                        <p className="font-bold text-sm">Paraben Free</p>
+                        <p className="font-bold text-sm"><LiveEditable collection="products_content" docId="dailydew" field="benefit3Title">Paraben Free</LiveEditable></p>
                     </div>
                     <div>
                         <span className="material-symbols-outlined text-4xl mb-4 text-brand-saffron">history_edu</span>
-                        <p className="font-bold text-sm">Heritage Formula</p>
+                        <p className="font-bold text-sm"><LiveEditable collection="products_content" docId="dailydew" field="benefit4Title">Heritage Formula</LiveEditable></p>
                     </div>
                 </div>
                 <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">

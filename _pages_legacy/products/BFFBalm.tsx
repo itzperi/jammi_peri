@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect } from 'react';
+import LiveEditable from '../../components/admin/LiveEditable';
 
 const BFFBalm: React.FC = () => {
     useEffect(() => {
@@ -58,7 +59,7 @@ const BFFBalm: React.FC = () => {
                     <div className="flex flex-col h-full justify-between py-4">
                         <div className="space-y-6">
                             <div>
-                                <h1 className="text-4xl lg:text-5xl font-black text-[#41644A] dark:text-slate-100 mb-2">BFF Balm</h1>
+                                <h1 className="text-4xl lg:text-5xl font-black text-[#41644A] dark:text-slate-100 mb-2"><LiveEditable collection="products_content" docId="bffbalm" field="name">BFF Balm</LiveEditable></h1>
                                 <p className="text-xl text-[#E86A33] font-semibold italic">Best Foot Forward</p>
                             </div>
 

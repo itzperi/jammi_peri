@@ -5,6 +5,7 @@ import Link from 'next/link';
 import ProductCard from '../components/ProductCard';
 import { MOCK_PRODUCTS } from '../constants';
 import { subscribeToDocument, fetchCollection } from '../lib/adminDb';
+import LiveEditable from '../components/admin/LiveEditable';
 
 const Home: React.FC = () => {
   // Hero Products
@@ -52,19 +53,27 @@ const Home: React.FC = () => {
           {/* Badge */}
           <div className="inline-flex items-center gap-2 border border-saffron/50 rounded-full px-4 py-1.5 mb-8 w-max bg-forest/30 backdrop-blur-sm">
             <span className="material-symbols-outlined text-saffron text-sm">star</span>
-            <span className="text-white text-[10px] sm:text-xs font-bold tracking-widest uppercase mt-0.5">{heroBadge}</span>
+            <span className="text-white text-[10px] sm:text-xs font-bold tracking-widest uppercase mt-0.5">
+              <LiveEditable collection="site_content" docId="homepage" field="heroBadge">{heroBadge}</LiveEditable>
+            </span>
           </div>
 
           {/* Headline */}
           <h1 className="font-serif leading-[1.1] sm:leading-none mb-6">
-            <span className="block text-white font-bold text-5xl sm:text-7xl md:text-8xl uppercase tracking-tight">{heroTitleLines[0]}</span>
-            <span className="block text-saffron italic text-6xl sm:text-8xl md:text-9xl pl-2 tracking-tight sm:-mt-6">{heroTitleLines[1]}</span>
-            <span className="block text-white font-bold text-5xl sm:text-7xl md:text-8xl uppercase tracking-tight sm:-mt-4 relative z-10">{heroTitleLines[2]}</span>
+            <span className="block text-white font-bold text-5xl sm:text-7xl md:text-8xl uppercase tracking-tight">
+              <LiveEditable collection="site_content" docId="homepage" field="heroTitleLine1">{heroTitleLines[0]}</LiveEditable>
+            </span>
+            <span className="block text-saffron italic text-6xl sm:text-8xl md:text-9xl pl-2 tracking-tight sm:-mt-6">
+              <LiveEditable collection="site_content" docId="homepage" field="heroTitleLine2">{heroTitleLines[1]}</LiveEditable>
+            </span>
+            <span className="block text-white font-bold text-5xl sm:text-7xl md:text-8xl uppercase tracking-tight sm:-mt-4 relative z-10">
+              <LiveEditable collection="site_content" docId="homepage" field="heroTitleLine3">{heroTitleLines[2]}</LiveEditable>
+            </span>
           </h1>
 
           {/* Subtext */}
           <p className="text-white/80 max-w-xl text-lg sm:text-xl font-medium leading-relaxed mb-10">
-            {heroSubtext}
+            <LiveEditable collection="site_content" docId="homepage" field="heroSubtext" multiline>{heroSubtext}</LiveEditable>
           </p>
 
           {/* CTA Buttons */}
@@ -112,13 +121,19 @@ const Home: React.FC = () => {
           {/* Left Column */}
           <div className="space-y-8">
             <h2 className="font-serif leading-none">
-              <span className="block text-forest font-bold text-5xl lg:text-6xl xl:text-7xl uppercase tracking-tight">{cmsContent?.claimHeadline?.[0] || "MEDICINE IS"}</span>
-              <span className="block text-forest font-bold text-5xl lg:text-6xl xl:text-7xl uppercase tracking-tight">{cmsContent?.claimHeadline?.[1] || "NOT A"}</span>
-              <span className="block text-saffron italic text-5xl lg:text-6xl xl:text-7xl tracking-tight pr-4">{cmsContent?.claimHeadline?.[2] || "Marketing Claim."}</span>
+              <span className="block text-forest font-bold text-5xl lg:text-6xl xl:text-7xl uppercase tracking-tight">
+                <LiveEditable collection="site_content" docId="homepage" field="claimTitleLine1">{cmsContent?.claimHeadline?.[0] || "MEDICINE IS"}</LiveEditable>
+              </span>
+              <span className="block text-forest font-bold text-5xl lg:text-6xl xl:text-7xl uppercase tracking-tight">
+                <LiveEditable collection="site_content" docId="homepage" field="claimTitleLine2">{cmsContent?.claimHeadline?.[1] || "NOT A"}</LiveEditable>
+              </span>
+              <span className="block text-saffron italic text-5xl lg:text-6xl xl:text-7xl tracking-tight pr-4">
+                <LiveEditable collection="site_content" docId="homepage" field="claimTitleLine3">{cmsContent?.claimHeadline?.[2] || "Marketing Claim."}</LiveEditable>
+              </span>
             </h2>
             <div className="w-16 h-1 bg-saffron"></div>
             <blockquote className="text-forest/70 italic text-xl lg:text-2xl font-serif leading-relaxed border-l-4 border-saffron/30 pl-6">
-              "{cmsContent?.claimQuote || "We don't sell hope. We sell 128 years of clinical results. Authentic Ayurveda doesn't ask for belief—it demands respect."}"
+              "<LiveEditable collection="site_content" docId="homepage" field="claimQuote" multiline>{cmsContent?.claimQuote || "We don't sell hope. We sell 128 years of clinical results. Authentic Ayurveda doesn't ask for belief—it demands respect."}</LiveEditable>"
             </blockquote>
             <div className="pt-4">
               <Link href="/heritage" className="inline-flex text-forest font-bold uppercase tracking-widest text-sm items-center gap-2 hover:text-saffron transition-colors pb-1 border-b-2 border-forest hover:border-saffron">
@@ -172,24 +187,28 @@ const Home: React.FC = () => {
               <span className="block text-forest text-2xl sm:text-3xl tracking-tight mt-4 font-normal">Add 128 Years to Your Practice.</span>
             </h2>
             <p className="text-forest/80 text-lg leading-relaxed mb-12 max-w-xl font-medium">
-              You heal the patient. We supply the medicine.<br /><br /> Jammi Pharmaceuticals invites qualified Ayurveda practitioners to partner with us commercially. Prescribe and retail our AYUSH-licensed, time-tested formulations through your clinic. Your patients get 128 years of proven results. You get a trusted product line and healthy margins — without the overhead of manufacturing.
-              <br /><br />
-              This is a straightforward business partnership. You focus on healing. We handle formulation, quality, compliance, and supply.
+              <LiveEditable collection="site_content" docId="homepage" field="partnerDescription" multiline>
+                {cmsContent?.partnerDescription || "You heal the patient. We supply the medicine. Jammi Pharmaceuticals invites qualified Ayurveda practitioners to partner with us commercially. Prescribe and retail our AYUSH-licensed, time-tested formulations through your clinic. Your patients get 128 years of proven results. You get a trusted product line and healthy margins — without the overhead of manufacturing. This is a straightforward business partnership. You focus on healing. We handle formulation, quality, compliance, and supply."}
+              </LiveEditable>
             </p>
 
             {/* Benefits Strip */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-8 mb-12 pt-6 border-t border-forest/10">
               {[
-                { title: '25–30% MARGINS', desc: 'Wholesale pricing on all 100+ formulations. The margin is yours to keep.', icon: 'payments' },
-                { title: 'ZERO INVENTORY RISK', desc: 'Order what you need, when you need. No minimum stock. Pan-India delivery.', icon: 'inventory' },
-                { title: 'AYUSH LICENSED', desc: 'Every formulation fully licensed and compliant. Prescribe with confidence.', icon: 'verified_user' },
-                { title: '128-YEAR FORMULARY', desc: 'Clinically proven across generations. Results, not experiments.', icon: 'auto_stories' }
+                { title: '25–30% MARGINS', desc: 'Wholesale pricing on all 100+ formulations. The margin is yours to keep.', icon: 'payments', field: 'benefit1' },
+                { title: 'ZERO INVENTORY RISK', desc: 'Order what you need, when you need. No minimum stock. Pan-India delivery.', icon: 'inventory', field: 'benefit2' },
+                { title: 'AYUSH LICENSED', desc: 'Every formulation fully licensed and compliant. Prescribe with confidence.', icon: 'verified_user', field: 'benefit3' },
+                { title: '128-YEAR FORMULARY', desc: 'Clinically proven across generations. Results, not experiments.', icon: 'auto_stories', field: 'benefit4' }
               ].map((benefit, i) => (
                 <div key={i} className="flex gap-4">
                   <span className="material-symbols-outlined text-saffron text-3xl flex-shrink-0">{benefit.icon}</span>
                   <div>
-                    <h4 className="text-forest font-bold text-sm tracking-wide mb-1">{benefit.title}</h4>
-                    <p className="text-forest/70 text-xs leading-relaxed">{benefit.desc}</p>
+                    <h4 className="text-forest font-bold text-sm tracking-wide mb-1">
+                      <LiveEditable collection="site_content" docId="homepage" field={`${benefit.field}Title`}>{benefit.title}</LiveEditable>
+                    </h4>
+                    <p className="text-forest/70 text-xs leading-relaxed">
+                      <LiveEditable collection="site_content" docId="homepage" field={`${benefit.field}Desc`}>{benefit.desc}</LiveEditable>
+                    </p>
                   </div>
                 </div>
               ))}
@@ -230,7 +249,9 @@ const Home: React.FC = () => {
             </div>
             <div className="absolute -bottom-8 -left-4 sm:-left-8 bg-forest p-6 sm:p-8 text-white z-20 shadow-2xl w-[90%] sm:max-w-xs rotate-2">
               <span className="material-symbols-outlined text-saffron text-3xl mb-4">format_quote</span>
-              <p className="font-serif italic text-sm sm:text-base md:text-lg leading-relaxed">"{cmsContent?.partnerQuote || "Adding Jammi to my clinic was the best decision for my patients and my practice."}"</p>
+              <p className="font-serif italic text-sm sm:text-base md:text-lg leading-relaxed">
+                "<LiveEditable collection="site_content" docId="homepage" field="partnerQuote" multiline>{cmsContent?.partnerQuote || "Adding Jammi to my clinic was the best decision for my patients and my practice."}</LiveEditable>"
+              </p>
             </div>
           </div>
         </div>
@@ -248,26 +269,34 @@ const Home: React.FC = () => {
           <div>
             <span className="text-saffron font-bold uppercase tracking-widest text-xs mb-6 block">JAMMI AYURVEDA MOVEMENT</span>
             <h2 className="font-serif leading-none mb-8">
-              <span className="block text-white font-bold text-5xl sm:text-6xl lg:text-7xl uppercase tracking-tight">{cmsContent?.fedHeadline?.[0] || "STOP"}</span>
-              <span className="block text-saffron font-bold text-5xl sm:text-6xl lg:text-7xl uppercase tracking-tight">{cmsContent?.fedHeadline?.[1] || "COMPETING."}</span>
-              <span className="block text-white font-bold text-5xl sm:text-6xl lg:text-7xl uppercase tracking-tight mt-2 pb-2">{cmsContent?.fedHeadline?.[2] || "START LEADING."}</span>
+              <span className="block text-white font-bold text-5xl sm:text-6xl lg:text-7xl uppercase tracking-tight">
+                <LiveEditable collection="site_content" docId="homepage" field="fedHeroTitleLine1">{cmsContent?.fedHeadline?.[0] || "STOP"}</LiveEditable>
+              </span>
+              <span className="block text-saffron font-bold text-5xl sm:text-6xl lg:text-7xl uppercase tracking-tight">
+                <LiveEditable collection="site_content" docId="homepage" field="fedHeroTitleLine2">{cmsContent?.fedHeadline?.[1] || "COMPETING."}</LiveEditable>
+              </span>
+              <span className="block text-white font-bold text-5xl sm:text-6xl lg:text-7xl uppercase tracking-tight mt-2 pb-2">
+                <LiveEditable collection="site_content" docId="homepage" field="fedHeroTitleLine3">{cmsContent?.fedHeadline?.[2] || "START LEADING."}</LiveEditable>
+              </span>
             </h2>
             <p className="text-white/80 text-xl font-medium leading-relaxed mb-12 max-w-md">
-              {cmsContent?.fedSubtext || "Join India's most powerful collective of traditional healers. We share our 128-year legacy, you provide the authentic healing. Together, we take back Indian healthcare."}
+              <LiveEditable collection="site_content" docId="homepage" field="fedSubtext" multiline>
+                {cmsContent?.fedSubtext || "Join India's most powerful collective of traditional healers. We share our 128-year legacy, you provide the authentic healing. Together, we take back Indian healthcare."}
+              </LiveEditable>
             </p>
 
             <ul className="space-y-6 mb-12">
               {[
-                'EXCLUSIVE WHOLESALE PRICING (25% MARGIN)',
-                'DIRECT PATIENT REFERRAL NETWORK',
-                'HERITAGE BRAND SUPPORT SINCE 1897',
-                'CLINICAL EDUCATION & MENTORSHIP'
+                { label: 'EXCLUSIVE WHOLESALE PRICING (25% MARGIN)', field: 'fedPoint1' },
+                { label: 'DIRECT PATIENT REFERRAL NETWORK', field: 'fedPoint2' },
+                { label: 'HERITAGE BRAND SUPPORT SINCE 1897', field: 'fedPoint3' },
+                { label: 'CLINICAL EDUCATION & MENTORSHIP', field: 'fedPoint4' }
               ].map((item, idx) => (
                 <li key={idx} className="flex items-center gap-4 text-white font-bold text-xs sm:text-sm tracking-wide">
                   <span className="flex-shrink-0 w-8 h-8 rounded-full bg-saffron/20 border border-saffron flex items-center justify-center text-saffron">
                     <span className="material-symbols-outlined text-sm">check</span>
                   </span>
-                  {item}
+                  <LiveEditable collection="site_content" docId="homepage" field={item.field}>{item.label}</LiveEditable>
                 </li>
               ))}
             </ul>

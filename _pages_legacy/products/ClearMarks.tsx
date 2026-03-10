@@ -1,5 +1,6 @@
 "use client";
 import React from 'react';
+import LiveEditable from '../../components/admin/LiveEditable';
 
 const ClearMarks = () => {
     return (
@@ -64,7 +65,7 @@ const ClearMarks = () => {
                         <div className="mb-2">
                             <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-wider">Heritage Formula</span>
                         </div>
-                        <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-slate-100 mb-2 leading-tight">Clear Marks</h1>
+                        <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-slate-100 mb-2 leading-tight"><LiveEditable collection="products_content" docId="clearmarks" field="name">Clear Marks</LiveEditable></h1>
                         <p className="text-lg text-slate-600 dark:text-slate-400 mb-6">Advanced Ayurvedic formulation for flawless, radiant skin.</p>
 
                         <div className="flex items-center gap-4 mb-8">

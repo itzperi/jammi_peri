@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect } from 'react';
+import LiveEditable from '../../components/admin/LiveEditable';
 
 const DTabs: React.FC = () => {
     useEffect(() => {
@@ -49,10 +50,8 @@ const DTabs: React.FC = () => {
                                         <span className="w-2 h-2 rounded-full bg-[#ec5b13] animate-pulse"></span>
                                         Therapeutics / D-Tabs
                                     </div>
-                                    <h1 className="text-5xl lg:text-7xl font-black text-slate-900 dark:text-white leading-tight">
-                                        Empower Your<br />
-                                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#ec5b13] to-amber-500">Metabolism.</span>
-                                    </h1>
+                                    <h1 className="text-5xl lg:text-7xl font-black text-slate-900 dark:text-white leading-tight"><LiveEditable collection="products_content" docId="dtabs" field="name">Empower Your<br />
+                                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#ec5b13] to-amber-500">Metabolism.</span></LiveEditable></h1>
                                     <p className="text-xl text-slate-600 dark:text-slate-300 leading-relaxed max-w-xl left-border pl-4 border-l-4 border-[#ec5b13]/30">
                                         D-Tabs is an advanced Ayurvedic formulation scientifically designed by Jammi to manage non-insulin dependent diabetes naturally and effectively.
                                     </p>

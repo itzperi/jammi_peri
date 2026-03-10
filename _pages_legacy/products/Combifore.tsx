@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect } from 'react';
+import LiveEditable from '../../components/admin/LiveEditable';
 
 const Combifore: React.FC = () => {
     useEffect(() => {
@@ -15,7 +16,7 @@ const Combifore: React.FC = () => {
                         <div className="bg-[#ec5b13] p-1.5 rounded-lg text-white">
                             <span className="material-symbols-outlined text-2xl">medical_services</span>
                         </div>
-                        <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Jammi Pharmaceuticals</h1>
+                        <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100"><LiveEditable collection="products_content" docId="combifore" field="name">Jammi Pharmaceuticals</LiveEditable></h1>
                     </div>
                     <div className="hidden md:flex flex-1 max-w-md mx-8">
                         <div className="relative w-full">

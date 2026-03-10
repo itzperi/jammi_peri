@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect } from 'react';
+import LiveEditable from '../../components/admin/LiveEditable';
 
 const GTPMentalFitness: React.FC = () => {
     useEffect(() => {
@@ -44,7 +45,7 @@ const GTPMentalFitness: React.FC = () => {
                             <div className="flex flex-col gap-6">
                                 <div className="flex flex-col gap-2">
                                     <span className="text-[#ec5b13] font-bold uppercase tracking-widest text-sm">Wellness / Therapeutics</span>
-                                    <h1 className="text-4xl lg:text-6xl font-black tracking-tight text-slate-900 dark:text-slate-100">GTP Mental Fitness</h1>
+                                    <h1 className="text-4xl lg:text-6xl font-black tracking-tight text-slate-900 dark:text-slate-100"><LiveEditable collection="products_content" docId="gtpmentalfitness" field="name">GTP Mental Fitness</LiveEditable></h1>
                                     <div className="flex items-center gap-2 mt-2">
                                         <div className="flex text-amber-400">
                                             <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>

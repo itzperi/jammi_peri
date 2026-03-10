@@ -1,5 +1,6 @@
 "use client";
 import React from 'react';
+import LiveEditable from '../../components/admin/LiveEditable';
 
 const KeshProOil = () => {
     return (
@@ -9,7 +10,7 @@ const KeshProOil = () => {
                 <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
                     <div className="flex items-center gap-2">
                         <span className="material-symbols-outlined text-secondary text-3xl">eco</span>
-                        <h1 className="text-2xl font-black tracking-tight font-display text-secondary dark:text-primary">Keshpro</h1>
+                        <h1 className="text-2xl font-black tracking-tight font-display text-secondary dark:text-primary"><LiveEditable collection="products_content" docId="keshprooil" field="name">Keshpro</LiveEditable></h1>
                     </div>
                     <nav className="hidden md:flex items-center gap-8 text-sm font-medium">
                         <a className="hover:text-primary transition-colors" href="#">Shop</a>

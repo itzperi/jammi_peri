@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect } from 'react';
+import LiveEditable from '../../components/admin/LiveEditable';
 
 const AACaps: React.FC = () => {
     useEffect(() => {
@@ -70,7 +71,7 @@ const AACaps: React.FC = () => {
                             <div className="flex flex-col gap-6">
                                 <div>
                                     <span className="text-[#ec5b13] font-semibold tracking-wide text-sm uppercase">Wellness / Therapeutics</span>
-                                    <h1 className="text-slate-900 dark:text-slate-100 text-4xl md:text-5xl font-black leading-tight tracking-tight mt-2">AA Caps (Breathe Easy)</h1>
+                                    <h1 className="text-slate-900 dark:text-slate-100 text-4xl md:text-5xl font-black leading-tight tracking-tight mt-2"><LiveEditable collection="products_content" docId="aacaps" field="name">AA Caps (Breathe Easy)</LiveEditable></h1>
                                     <p className="text-slate-500 dark:text-slate-400 text-lg mt-2">By Jammi Pharmaceuticals</p>
                                 </div>
                                 <div className="flex items-center gap-4">
@@ -91,9 +92,7 @@ const AACaps: React.FC = () => {
                                         <p className="text-xs text-amber-600 font-medium">In Stock &amp; Ready to Ship</p>
                                     </div>
                                 </div>
-                                <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg">
-                                    AA Caps is a scientifically formulated therapeutic supplement designed to relieve respiratory tract disorders. Crafted with potent Ayurvedic herbs, it helps clear congestion and promotes effortless breathing.
-                                </p>
+                                <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg"><LiveEditable collection="products_content" docId="aacaps" field="description" multiline>AA Caps is a scientifically formulated therapeutic supplement designed to relieve respiratory tract disorders. Crafted with potent Ayurvedic herbs, it helps clear congestion and promotes effortless breathing.</LiveEditable></p>
                                 <div className="flex flex-col gap-4 mt-4">
                                     <div className="flex items-center gap-4">
                                         <div className="flex-1 flex items-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2 justify-between">
@@ -117,29 +116,29 @@ const AACaps: React.FC = () => {
                                         <div className="flex items-start gap-3">
                                             <span className="material-symbols-outlined text-[#ec5b13] bg-[#ec5b13]/10 p-2 rounded-lg">air</span>
                                             <div>
-                                                <p className="font-bold text-sm">Respiratory Relief</p>
-                                                <p className="text-xs text-slate-500">Helps in clearing the respiratory tract.</p>
+                                                <p className="font-bold text-sm"><LiveEditable collection="products_content" docId="aacaps" field="benefit1Title">Respiratory Relief</LiveEditable></p>
+                                                <p className="text-xs text-slate-500"><LiveEditable collection="products_content" docId="aacaps" field="benefit1Desc" multiline>Helps in clearing the respiratory tract.</LiveEditable></p>
                                             </div>
                                         </div>
                                         <div className="flex items-start gap-3">
                                             <span className="material-symbols-outlined text-[#ec5b13] bg-[#ec5b13]/10 p-2 rounded-lg">shield</span>
                                             <div>
-                                                <p className="font-bold text-sm">Immune Support</p>
-                                                <p className="text-xs text-slate-500">Strengthens natural defense mechanisms.</p>
+                                                <p className="font-bold text-sm"><LiveEditable collection="products_content" docId="aacaps" field="benefit2Title">Immune Support</LiveEditable></p>
+                                                <p className="text-xs text-slate-500"><LiveEditable collection="products_content" docId="aacaps" field="benefit2Desc" multiline>Strengthens natural defense mechanisms.</LiveEditable></p>
                                             </div>
                                         </div>
                                         <div className="flex items-start gap-3">
                                             <span className="material-symbols-outlined text-[#ec5b13] bg-[#ec5b13]/10 p-2 rounded-lg">spa</span>
                                             <div>
-                                                <p className="font-bold text-sm">100% Herbal</p>
-                                                <p className="text-xs text-slate-500">No synthetic additives or chemicals.</p>
+                                                <p className="font-bold text-sm"><LiveEditable collection="products_content" docId="aacaps" field="benefit3Title">100% Herbal</LiveEditable></p>
+                                                <p className="text-xs text-slate-500"><LiveEditable collection="products_content" docId="aacaps" field="benefit3Desc" multiline>No synthetic additives or chemicals.</LiveEditable></p>
                                             </div>
                                         </div>
                                         <div className="flex items-start gap-3">
                                             <span className="material-symbols-outlined text-[#ec5b13] bg-[#ec5b13]/10 p-2 rounded-lg">verified</span>
                                             <div>
-                                                <p className="font-bold text-sm">Fast Acting</p>
-                                                <p className="text-xs text-slate-500">Quick absorption for faster relief.</p>
+                                                <p className="font-bold text-sm"><LiveEditable collection="products_content" docId="aacaps" field="benefit4Title">Fast Acting</LiveEditable></p>
+                                                <p className="text-xs text-slate-500"><LiveEditable collection="products_content" docId="aacaps" field="benefit4Desc" multiline>Quick absorption for faster relief.</LiveEditable></p>
                                             </div>
                                         </div>
                                     </div>
@@ -260,7 +259,7 @@ const AACaps: React.FC = () => {
                                     <div className="size-10 rounded-full bg-[#ec5b13]/20 flex items-center justify-center font-bold text-[#ec5b13]">JD</div>
                                     <div>
                                         <p className="font-bold">John Doe</p>
-                                        <p className="text-xs text-slate-500">Verified Buyer • 2 weeks ago</p>
+                                        <p className="text-xs text-slate-500"><LiveEditable collection="products_content" docId="aacaps" field="benefit5Desc" multiline>Verified Buyer • 2 weeks ago</LiveEditable></p>
                                     </div>
                                 </div>
                                 <div className="flex text-[#ec5b13]">

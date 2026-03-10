@@ -1,8 +1,24 @@
 "use client";
-
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { subscribeToDocument } from '../lib/adminDb';
+import LiveEditable from '../components/admin/LiveEditable';
 
 const Heritage: React.FC = () => {
+  const [content, setContent] = useState<any>(null);
+
+  useEffect(() => {
+    const unsub = subscribeToDocument('site_content', 'heritage', (data) => {
+      if (data) setContent(data);
+    });
+    return () => unsub();
+  }, []);
+
+  const heroHeadline = content?.heroHeadline || "A Legacy of Healing";
+  const heroSubtext = content?.heroSubtext || "Honoring the visionary founder, Dr. Jammi Venkataramanayya. Over a century of bridging ancient Ayurvedic wisdom with the rigor of modern science to serve humanity.";
+  const founderTitle = content?.founderTitle || "A Life Dedicated to Healing";
+  const founderText1 = content?.founderText1 || "In the late 19th century, when modern medicine was still in its infancy in India, Dr. Jammi Venkataramanayya embarked on a mission to democratize the profound healing wisdom of Ayurveda.";
+  const founderQuote = content?.founderQuote || "True healing occurs only when the ancient texts are honored with modern precision.";
+
   return (
     <div className="bg-background-light text-secondary transition-colors duration-300 font-body">
       {/* Hero Section */}
@@ -11,9 +27,11 @@ const Heritage: React.FC = () => {
         <div className="absolute inset-0 bg-gradient-to-t from-background-light via-background-light/60 to-transparent"></div>
         <div className="relative z-10 text-center px-4 max-w-4xl">
           <p className="text-primary font-bold tracking-widest uppercase text-sm mb-4">Est. 1890</p>
-          <h1 className="font-display text-6xl md:text-8xl text-secondary leading-tight mb-6 font-extrabold">A Legacy of Healing</h1>
-          <p className="text-lg md:text-xl text-slate-600 max-w-3xl mx-auto leading-relaxed">
-            Honoring the visionary founder, Dr. Jammi Venkataramanayya. Over a century of bridging ancient Ayurvedic wisdom with the rigor of modern science to serve humanity.
+          <h1 className="font-display text-6xl md:text-8xl text-secondary leading-tight mb-6 font-extrabold text-white">
+            <LiveEditable collection="site_content" docId="heritage" field="heroHeadline">{heroHeadline}</LiveEditable>
+          </h1>
+          <p className="text-lg md:text-xl text-slate-100 max-w-3xl mx-auto leading-relaxed">
+            <LiveEditable collection="site_content" docId="heritage" field="heroSubtext" multiline>{heroSubtext}</LiveEditable>
           </p>
           <div className="mt-10 flex flex-col sm:flex-row justify-center gap-4">
             <a href="#milestones" className="inline-block bg-secondary text-white px-8 py-4 rounded-full font-bold hover:bg-black transition-all shadow-lg hover:-translate-y-1">Explore Our Journey</a>
@@ -34,15 +52,21 @@ const Heritage: React.FC = () => {
         </div>
         <div className="order-1 lg:order-2 space-y-6">
           <span className="text-primary font-bold tracking-widest uppercase text-sm">The Architect of Modern Ayurveda</span>
-          <h2 className="text-4xl md:text-5xl font-display font-bold text-secondary leading-tight">A Life Dedicated to Healing</h2>
+          <h2 className="text-4xl md:text-5xl font-display font-bold text-secondary leading-tight">
+            <LiveEditable collection="site_content" docId="heritage" field="founderTitle">{founderTitle}</LiveEditable>
+          </h2>
           <p className="text-lg text-slate-600 leading-relaxed">
-            In the late 19th century, when modern medicine was still in its infancy in India, Dr. Jammi Venkataramanayya embarked on a mission to democratize the profound healing wisdom of Ayurveda.
+            <LiveEditable collection="site_content" docId="heritage" field="founderText1" multiline>{founderText1}</LiveEditable>
           </p>
           <p className="text-lg text-slate-600 leading-relaxed">
-            Recognizing the need for standardization, he became one of the first practitioners to introduce scientific rigor into the preparation of Ayurvedic formulations, ensuring consistent quality and efficacy for every patient.
+            <LiveEditable collection="heritage" docId="main" field="founderText2" multiline>
+              {content?.founderText2 || "Recognizing the need for standardization, he became one of the first practitioners to introduce scientific rigor into the preparation of Ayurvedic formulations, ensuring consistent quality and efficacy for every patient."}
+            </LiveEditable>
           </p>
           <blockquote className="border-l-4 border-primary pl-6 py-2 my-8">
-            <p className="text-xl font-display italic text-secondary leading-snug">"True healing occurs only when the ancient texts are honored with modern precision."</p>
+            <p className="text-xl font-display italic text-secondary leading-snug">
+              "<LiveEditable collection="site_content" docId="heritage" field="founderQuote" multiline>{founderQuote}</LiveEditable>"
+            </p>
           </blockquote>
         </div>
       </section>
@@ -61,11 +85,11 @@ const Heritage: React.FC = () => {
 
             {/* Timeline Items */}
             {[
-              { year: '1890', title: 'Founding in Vijayanagaram', desc: 'Dr. Jammi Venkataramanayya begins his quest to modernize traditional healing practices with his first clinic.' },
-              { year: '1940', title: 'Tamil Nadu Govt Award', desc: 'Recognition for pioneering work in public health and standardized Ayurveda during a critical healthcare crisis.' },
-              { year: '1965', title: 'The First Manufacturing Unit', desc: 'Establishment of a dedicated facility ensuring all formulations meet strict clinical standards.' },
-              { year: '1990', title: 'Premier Institute Collaborations', desc: 'Jammi partners with technical institutes (IITs) to validate ancient molecules using modern analytics.' },
-              { year: '2025', title: 'A New Digital Frontier', desc: 'Bringing 128 years of clinical heritage to patients globally through advanced online consultation platforms.' }
+              { year: '1890', title: 'Founding in Vijayanagaram', desc: 'Dr. Jammi Venkataramanayya begins his quest to modernize traditional healing practices with his first clinic.', field: 'm1' },
+              { year: '1940', title: 'Tamil Nadu Govt Award', desc: 'Recognition for pioneering work in public health and standardized Ayurveda during a critical healthcare crisis.', field: 'm2' },
+              { year: '1965', title: 'The First Manufacturing Unit', desc: 'Establishment of a dedicated facility ensuring all formulations meet strict clinical standards.', field: 'm3' },
+              { year: '1990', title: 'Premier Institute Collaborations', desc: 'Jammi partners with technical institutes (IITs) to validate ancient molecules using modern analytics.', field: 'm4' },
+              { year: '2025', title: 'A New Digital Frontier', desc: 'Bringing 128 years of clinical heritage to patients globally through advanced online consultation platforms.', field: 'm5' }
             ].map((milestone, idx) => (
               <div key={milestone.year} className={`relative flex flex-col md:flex-row gap-8 md:gap-12 mb-16 items-start md:items-center ${idx % 2 === 0 ? 'md:flex-row-reverse' : ''}`}>
 
@@ -81,8 +105,12 @@ const Heritage: React.FC = () => {
 
                 <div className="md:w-1/2 pl-12 md:pl-0">
                   <div className={`bg-background-light p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow relative ${idx % 2 === 0 ? '' : 'md:ml-auto'}`}>
-                    <h3 className="text-xl font-bold mb-2 text-secondary">{milestone.title}</h3>
-                    <p className="text-slate-600 leading-relaxed text-sm">{milestone.desc}</p>
+                    <h3 className="text-xl font-bold mb-2 text-secondary">
+                      <LiveEditable collection="site_content" docId="heritage" field={`${milestone.field}Title`}>{milestone.title}</LiveEditable>
+                    </h3>
+                    <p className="text-slate-600 leading-relaxed text-sm">
+                      <LiveEditable collection="site_content" docId="heritage" field={`${milestone.field}Desc`} multiline>{milestone.desc}</LiveEditable>
+                    </p>
                   </div>
                 </div>
 

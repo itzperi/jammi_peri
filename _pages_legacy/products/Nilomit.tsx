@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import LiveEditable from '../../components/admin/LiveEditable';
 
 const Nilomit: React.FC = () => {
     const [quantity, setQuantity] = useState(1);
@@ -81,7 +82,7 @@ const Nilomit: React.FC = () => {
                             <span className="inline-flex items-center rounded-full bg-[#ec5b13]/10 px-3 py-1 text-xs font-bold text-[#ec5b13]">BEST SELLER</span>
                             <span className="inline-flex items-center rounded-full bg-slate-200 dark:bg-slate-800 px-3 py-1 text-xs font-semibold">Digestive Health</span>
                         </div>
-                        <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">Nilomit (Anti-Emetic Tablets)</h1>
+                        <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white"><LiveEditable collection="products_content" docId="nilomit" field="name">Nilomit (Anti-Emetic Tablets)</LiveEditable></h1>
                         <p className="mt-2 text-xl font-medium text-[#ec5b13]">Natural Relief from Nausea and Vomiting</p>
                         <div className="mt-4 flex items-center gap-4">
                             <div className="flex flex-row text-yellow-400">

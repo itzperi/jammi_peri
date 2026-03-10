@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect } from 'react';
+import LiveEditable from '../../components/admin/LiveEditable';
 
 const ZeerAlka: React.FC = () => {
     useEffect(() => {
@@ -61,7 +62,7 @@ const ZeerAlka: React.FC = () => {
                             <span className="material-symbols-outlined text-xs">chevron_right</span>
                             <span className="text-[#2E5339] font-medium">Zeer Alka</span>
                         </nav>
-                        <h1 className="text-4xl lg:text-5xl font-['Playfair_Display',serif] font-bold text-[#2E5339] dark:text-[#D4882E] mb-2">Zeer Alka</h1>
+                        <h1 className="text-4xl lg:text-5xl font-['Playfair_Display',serif] font-bold text-[#2E5339] dark:text-[#D4882E] mb-2"><LiveEditable collection="products_content" docId="zeeralka" field="name">Zeer Alka</LiveEditable></h1>
                         <p className="text-lg text-[#2E5339]/80 italic mb-6">Premium Ayurvedic Care</p>
 
                         <div className="flex items-center gap-4 mb-8">
@@ -72,22 +73,20 @@ const ZeerAlka: React.FC = () => {
                         <div className="grid grid-cols-3 gap-4 mb-8">
                             <div className="flex flex-col items-center p-3 bg-[#2E5339]/5 rounded-xl text-center">
                                 <span className="material-symbols-outlined text-[#D4882E] mb-1">eco</span>
-                                <span className="text-xs font-bold uppercase tracking-tighter">Natural</span>
+                                <span className="text-xs font-bold uppercase tracking-tighter"><LiveEditable collection="products_content" docId="zeeralka" field="benefit1">Natural</LiveEditable></span>
                             </div>
                             <div className="flex flex-col items-center p-3 bg-[#2E5339]/5 rounded-xl text-center">
                                 <span className="material-symbols-outlined text-[#D4882E] mb-1">shield</span>
-                                <span className="text-xs font-bold uppercase tracking-tighter">Safe</span>
+                                <span className="text-xs font-bold uppercase tracking-tighter"><LiveEditable collection="products_content" docId="zeeralka" field="benefit2">Safe</LiveEditable></span>
                             </div>
                             <div className="flex flex-col items-center p-3 bg-[#2E5339]/5 rounded-xl text-center">
                                 <span className="material-symbols-outlined text-[#D4882E] mb-1">health_and_safety</span>
-                                <span className="text-xs font-bold uppercase tracking-tighter">Effective</span>
+                                <span className="text-xs font-bold uppercase tracking-tighter"><LiveEditable collection="products_content" docId="zeeralka" field="benefit3">Effective</LiveEditable></span>
                             </div>
                         </div>
 
                         <div className="space-y-6 mb-10">
-                            <p className="text-[#2E5339]/70 leading-relaxed">
-                                Zeer Alka is designed to provide soothing relief and support optimal health. Crafted with carefully selected botanical extracts.
-                            </p>
+                            <p className="text-[#2E5339]/70 leading-relaxed"><LiveEditable collection="products_content" docId="zeeralka" field="description" multiline>Zeer Alka is designed to provide soothing relief and support optimal health. Crafted with carefully selected botanical extracts.</LiveEditable></p>
                             <div className="flex items-center gap-4">
                                 <button className="flex-1 bg-[#D4882E] hover:bg-[#D4882E]/90 text-white py-4 rounded-full font-bold shadow-lg shadow-[#D4882E]/20 transition-all transform hover:-translate-y-1">
                                     Add to Cart
