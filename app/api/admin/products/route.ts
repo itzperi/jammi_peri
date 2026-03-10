@@ -11,6 +11,10 @@ export async function GET(request: Request) {
     const category = searchParams.get('category') || '';
     const status = searchParams.get('status') || '';
 
+    if (!db) {
+        return NextResponse.json({ error: "Database not initialized" }, { status: 503 });
+    }
+
     let q = query(collection(db, 'products'));
     const snapshot = await getDocs(q);
     let dbProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -53,6 +57,9 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
     try {
         const data = await request.json();
+        if (!db) {
+            return NextResponse.json({ error: "Database not initialized" }, { status: 503 });
+        }
         const docRef = await addDoc(collection(db, 'products'), {
             ...data,
             createdAt: new Date().toISOString()

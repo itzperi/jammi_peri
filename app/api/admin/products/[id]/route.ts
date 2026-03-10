@@ -6,6 +6,9 @@ import { MOCK_PRODUCTS } from '../../../../../constants';
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
         const { id } = await params;
+        if (!db) {
+            return NextResponse.json({ error: "Database not initialized" }, { status: 503 });
+        }
         const docRef = doc(db, 'products', id);
         const snapshot = await getDoc(docRef);
         if(!snapshot.exists()) {
@@ -26,6 +29,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     try {
         const { id } = await params;
         const data = await request.json();
+        if (!db) {
+            return NextResponse.json({ error: "Database not initialized" }, { status: 503 });
+        }
         const docRef = doc(db, 'products', id);
         // Use setDoc with merge true so we can "edit" mock products by saving them to DB
         await setDoc(docRef, { ...data, updatedAt: new Date().toISOString() }, { merge: true });
@@ -38,6 +44,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
         const { id } = await params;
+        if (!db) {
+            return NextResponse.json({ error: "Database not initialized" }, { status: 503 });
+        }
         const docRef = doc(db, 'products', id);
         // Soft delete to handle overriding mock products
         await setDoc(docRef, { deleted: true }, { merge: true });

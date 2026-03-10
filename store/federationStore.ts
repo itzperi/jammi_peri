@@ -5,26 +5,30 @@ import { collection, onSnapshot, doc, updateDoc, deleteDoc, addDoc, query, order
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
 
 export const useFederationStore = create<FederationStore>((set, get) => {
-    // Initialize Firestore listener for posts
-    const postsQuery = query(collection(db, 'federation_posts'), orderBy('timestamp', 'desc'));
-    onSnapshot(postsQuery, (snapshot) => {
-        const posts: ForumPost[] = [];
-        snapshot.forEach((doc) => {
-            posts.push({ id: doc.id, ...doc.data() } as ForumPost);
+    // Initialize Firestore listener for posts if db is available
+    if (db) {
+        const postsQuery = query(collection(db, 'federation_posts'), orderBy('timestamp', 'desc'));
+        onSnapshot(postsQuery, (snapshot) => {
+            const posts: ForumPost[] = [];
+            snapshot.forEach((doc) => {
+                posts.push({ id: doc.id, ...doc.data() } as ForumPost);
+            });
+            set({ posts });
+        }, (error) => {
+            console.error("Error fetching posts:", error);
         });
-        set({ posts });
-    }, (error) => {
-        console.error("Error fetching posts:", error);
-    });
+    }
 
-    // Initialize Auth listener
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            set({ isAdminLoggedIn: true, sanctumModalOpen: false });
-        } else {
-            set({ isAdminLoggedIn: false });
-        }
-    });
+    // Initialize Auth listener if auth is available
+    if (auth) {
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                set({ isAdminLoggedIn: true, sanctumModalOpen: false });
+            } else {
+                set({ isAdminLoggedIn: false });
+            }
+        });
+    }
 
     return {
         posts: [],
