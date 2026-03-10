@@ -1,9 +1,10 @@
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import ProductCard from '../components/ProductCard';
 import { MOCK_PRODUCTS } from '../constants';
+import { subscribeToDocument, fetchCollection } from '../lib/adminDb';
 
 const Home: React.FC = () => {
   // Hero Products
@@ -11,15 +12,39 @@ const Home: React.FC = () => {
     ['triphala-churna', 'yummunity', 'trip-caps'].includes(p.id)
   );
 
+  const [cmsContent, setCmsContent] = useState<any>(null);
+  const [activeBanner, setActiveBanner] = useState<any>(null);
+
+  useEffect(() => {
+    // Subscribe to homepage content
+    const unsubscribe = subscribeToDocument('site_content', 'homepage', (data) => {
+      if (data) setCmsContent(data);
+    });
+
+    // Fetch banners
+    fetchCollection('banners').then(banners => {
+      const active = banners.find((b: any) => b.isActive);
+      if (active) setActiveBanner(active);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // Use dynamic content or fallbacks
+  const heroBadge = cmsContent?.heroBadge || "128 Years of Authenticity";
+  const heroTitleLines = cmsContent?.heroTitleLines || ["INDIA'S", "Healthcare", "RENAISSANCE."];
+  const heroSubtext = cmsContent?.heroSubtext || "We are not \"Alternative Medicine.\" We are India's primary healthcare solution since 1897.";
+  const heroBgImage = activeBanner?.imageUrl || "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&q=80&w=1920";
+
   return (
     <div className="bg-background-light pt-[5rem]">
 
       {/* Section 1: Hero */}
       <section className="relative min-h-[90vh] flex items-center bg-forest overflow-hidden mt-1">
-        {/* Background Image - woman in yoga/stretch pose, silhouetted */}
+        {/* Background Image */}
         <div
-          className="absolute inset-0 bg-cover bg-center md:bg-right opacity-60 mix-blend-overlay"
-          style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&q=80&w=1920")' }}
+          className="absolute inset-0 bg-cover bg-center md:bg-right opacity-60 mix-blend-overlay transition-all duration-1000"
+          style={{ backgroundImage: `url("${heroBgImage}")` }}
         ></div>
         <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-forest via-forest/80 to-transparent"></div>
 
@@ -27,19 +52,19 @@ const Home: React.FC = () => {
           {/* Badge */}
           <div className="inline-flex items-center gap-2 border border-saffron/50 rounded-full px-4 py-1.5 mb-8 w-max bg-forest/30 backdrop-blur-sm">
             <span className="material-symbols-outlined text-saffron text-sm">star</span>
-            <span className="text-white text-[10px] sm:text-xs font-bold tracking-widest uppercase mt-0.5">128 Years of Authenticity</span>
+            <span className="text-white text-[10px] sm:text-xs font-bold tracking-widest uppercase mt-0.5">{heroBadge}</span>
           </div>
 
           {/* Headline */}
           <h1 className="font-serif leading-[1.1] sm:leading-none mb-6">
-            <span className="block text-white font-bold text-5xl sm:text-7xl md:text-8xl uppercase tracking-tight">INDIA'S</span>
-            <span className="block text-saffron italic text-6xl sm:text-8xl md:text-9xl pl-2 tracking-tight sm:-mt-6">Healthcare</span>
-            <span className="block text-white font-bold text-5xl sm:text-7xl md:text-8xl uppercase tracking-tight sm:-mt-4 relative z-10">RENAISSANCE.</span>
+            <span className="block text-white font-bold text-5xl sm:text-7xl md:text-8xl uppercase tracking-tight">{heroTitleLines[0]}</span>
+            <span className="block text-saffron italic text-6xl sm:text-8xl md:text-9xl pl-2 tracking-tight sm:-mt-6">{heroTitleLines[1]}</span>
+            <span className="block text-white font-bold text-5xl sm:text-7xl md:text-8xl uppercase tracking-tight sm:-mt-4 relative z-10">{heroTitleLines[2]}</span>
           </h1>
 
           {/* Subtext */}
           <p className="text-white/80 max-w-xl text-lg sm:text-xl font-medium leading-relaxed mb-10">
-            We are not "Alternative Medicine." We are India's primary healthcare solution since 1897.
+            {heroSubtext}
           </p>
 
           {/* CTA Buttons */}
@@ -87,13 +112,13 @@ const Home: React.FC = () => {
           {/* Left Column */}
           <div className="space-y-8">
             <h2 className="font-serif leading-none">
-              <span className="block text-forest font-bold text-5xl lg:text-6xl xl:text-7xl uppercase tracking-tight">MEDICINE IS</span>
-              <span className="block text-forest font-bold text-5xl lg:text-6xl xl:text-7xl uppercase tracking-tight">NOT A</span>
-              <span className="block text-saffron italic text-5xl lg:text-6xl xl:text-7xl tracking-tight pr-4">Marketing Claim.</span>
+              <span className="block text-forest font-bold text-5xl lg:text-6xl xl:text-7xl uppercase tracking-tight">{cmsContent?.claimHeadline?.[0] || "MEDICINE IS"}</span>
+              <span className="block text-forest font-bold text-5xl lg:text-6xl xl:text-7xl uppercase tracking-tight">{cmsContent?.claimHeadline?.[1] || "NOT A"}</span>
+              <span className="block text-saffron italic text-5xl lg:text-6xl xl:text-7xl tracking-tight pr-4">{cmsContent?.claimHeadline?.[2] || "Marketing Claim."}</span>
             </h2>
             <div className="w-16 h-1 bg-saffron"></div>
             <blockquote className="text-forest/70 italic text-xl lg:text-2xl font-serif leading-relaxed border-l-4 border-saffron/30 pl-6">
-              "We don't sell hope. We sell 128 years of clinical results. Authentic Ayurveda doesn't ask for belief—it demands respect."
+              "{cmsContent?.claimQuote || "We don't sell hope. We sell 128 years of clinical results. Authentic Ayurveda doesn't ask for belief—it demands respect."}"
             </blockquote>
             <div className="pt-4">
               <Link href="/heritage" className="inline-flex text-forest font-bold uppercase tracking-widest text-sm items-center gap-2 hover:text-saffron transition-colors pb-1 border-b-2 border-forest hover:border-saffron">
@@ -205,7 +230,7 @@ const Home: React.FC = () => {
             </div>
             <div className="absolute -bottom-8 -left-4 sm:-left-8 bg-forest p-6 sm:p-8 text-white z-20 shadow-2xl w-[90%] sm:max-w-xs rotate-2">
               <span className="material-symbols-outlined text-saffron text-3xl mb-4">format_quote</span>
-              <p className="font-serif italic text-sm sm:text-base md:text-lg leading-relaxed">"Adding Jammi to my clinic was the best decision for my patients and my practice."</p>
+              <p className="font-serif italic text-sm sm:text-base md:text-lg leading-relaxed">"{cmsContent?.partnerQuote || "Adding Jammi to my clinic was the best decision for my patients and my practice."}"</p>
             </div>
           </div>
         </div>
@@ -223,12 +248,12 @@ const Home: React.FC = () => {
           <div>
             <span className="text-saffron font-bold uppercase tracking-widest text-xs mb-6 block">JAMMI AYURVEDA MOVEMENT</span>
             <h2 className="font-serif leading-none mb-8">
-              <span className="block text-white font-bold text-5xl sm:text-6xl lg:text-7xl uppercase tracking-tight">STOP</span>
-              <span className="block text-saffron font-bold text-5xl sm:text-6xl lg:text-7xl uppercase tracking-tight">COMPETING.</span>
-              <span className="block text-white font-bold text-5xl sm:text-6xl lg:text-7xl uppercase tracking-tight mt-2 pb-2">START LEADING.</span>
+              <span className="block text-white font-bold text-5xl sm:text-6xl lg:text-7xl uppercase tracking-tight">{cmsContent?.fedHeadline?.[0] || "STOP"}</span>
+              <span className="block text-saffron font-bold text-5xl sm:text-6xl lg:text-7xl uppercase tracking-tight">{cmsContent?.fedHeadline?.[1] || "COMPETING."}</span>
+              <span className="block text-white font-bold text-5xl sm:text-6xl lg:text-7xl uppercase tracking-tight mt-2 pb-2">{cmsContent?.fedHeadline?.[2] || "START LEADING."}</span>
             </h2>
             <p className="text-white/80 text-xl font-medium leading-relaxed mb-12 max-w-md">
-              Join India's most powerful collective of traditional healers. We share our 128-year legacy, you provide the authentic healing. Together, we take back Indian healthcare.
+              {cmsContent?.fedSubtext || "Join India's most powerful collective of traditional healers. We share our 128-year legacy, you provide the authentic healing. Together, we take back Indian healthcare."}
             </p>
 
             <ul className="space-y-6 mb-12">

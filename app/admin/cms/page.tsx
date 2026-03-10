@@ -22,7 +22,21 @@ interface Banner {
 }
 
 export default function AdminCMS() {
-  const [activeTab, setActiveTab] = useState<'banners' | 'blogs'>('banners');
+  const [activeTab, setActiveTab] = useState<'banners' | 'blogs' | 'site_content'>('banners');
+
+  // Site Content
+  const [siteContent, setSiteContent] = useState<any>(null);
+  const [isSiteContentLoading, setIsSiteContentLoading] = useState(false);
+  
+  // Site Content Form States
+  const [heroBadge, setHeroBadge] = useState('');
+  const [heroTitleLines, setHeroTitleLines] = useState(['', '', '']);
+  const [heroSubtext, setHeroSubtext] = useState('');
+  const [claimHeadline, setClaimHeadline] = useState(['', '', '']);
+  const [claimQuote, setClaimQuote] = useState('');
+  const [fedHeadline, setFedHeadline] = useState(['', '', '', '']);
+  const [fedSubtext, setFedSubtext] = useState('');
+  const [partnerQuote, setPartnerQuote] = useState('');
 
   // Banners
   const [banners, setBanners] = useState<Banner[]>([]);
@@ -49,7 +63,52 @@ export default function AdminCMS() {
   useEffect(() => {
     loadBanners();
     loadBlogs();
+    loadSiteContent();
   }, []);
+
+  async function loadSiteContent() {
+    setIsSiteContentLoading(true);
+    try {
+      const data = await fetchCollection('site_content');
+      const homepage = data.find((d: any) => d.id === 'homepage') as any;
+      if (homepage) {
+        setSiteContent(homepage);
+        setHeroBadge(homepage.heroBadge || '');
+        setHeroTitleLines(homepage.heroTitleLines || ['', '', '']);
+        setHeroSubtext(homepage.heroSubtext || '');
+        setClaimHeadline(homepage.claimHeadline || ['', '', '']);
+        setClaimQuote(homepage.claimQuote || '');
+        setFedHeadline(homepage.fedHeadline || ['', '', '', '']);
+        setFedSubtext(homepage.fedSubtext || '');
+        setPartnerQuote(homepage.partnerQuote || '');
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSiteContentLoading(false);
+    }
+  }
+
+  const handleUpdateSiteContent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const updatedData = {
+        heroBadge,
+        heroTitleLines,
+        heroSubtext,
+        claimHeadline,
+        claimQuote,
+        fedHeadline,
+        fedSubtext,
+        partnerQuote,
+      };
+      await updateDocument('site_content', 'homepage', updatedData);
+      setSiteContent({ ...siteContent, ...updatedData });
+      alert("Site content updated successfully!");
+    } catch (err) {
+      console.error("Error updating site content", err);
+    }
+  };
 
   async function loadBanners() {
     setIsBannerLoading(true);
@@ -160,7 +219,104 @@ export default function AdminCMS() {
         >
           Blog Posts
         </button>
+        <button 
+          onClick={() => setActiveTab('site_content')}
+          className={`px-6 py-3 font-bold text-sm uppercase tracking-wider transition-colors border-b-2 ${activeTab === 'site_content' ? 'border-forest text-forest' : 'border-transparent text-slate-500 hover:text-slate-800'}`}
+        >
+          Site Content
+        </button>
       </div>
+
+      {activeTab === 'site_content' && (
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8 max-w-4xl">
+          <h2 className="text-2xl font-bold mb-8 text-slate-800 border-b pb-4">Homepage Content Management</h2>
+          <form onSubmit={handleUpdateSiteContent} className="space-y-8">
+            {/* Hero Section */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-bold text-forest uppercase tracking-widest border-l-4 border-saffron pl-4">Hero Section</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="col-span-full">
+                  <label className="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">Top Badge Text</label>
+                  <input type="text" value={heroBadge} onChange={e => setHeroBadge(e.target.value)} className="w-full border border-slate-300 rounded px-4 py-2 focus:outline-none focus:border-forest" />
+                </div>
+                {heroTitleLines.map((line, idx) => (
+                  <div key={idx} className={idx === 2 ? "col-span-full" : ""}>
+                    <label className="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">Headline Line {idx + 1}</label>
+                    <input type="text" value={line} onChange={e => {
+                      const newLines = [...heroTitleLines];
+                      newLines[idx] = e.target.value;
+                      setHeroTitleLines(newLines);
+                    }} className="w-full border border-slate-300 rounded px-4 py-2 focus:outline-none focus:border-forest" />
+                  </div>
+                ))}
+                <div className="col-span-full">
+                  <label className="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">Hero Subtext</label>
+                  <textarea value={heroSubtext} onChange={e => setHeroSubtext(e.target.value)} rows={2} className="w-full border border-slate-300 rounded px-4 py-2 focus:outline-none focus:border-forest" />
+                </div>
+              </div>
+            </div>
+
+            {/* Claim Section */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-bold text-forest uppercase tracking-widest border-l-4 border-saffron pl-4">"The Jammi Claim" Section</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {claimHeadline.map((line, idx) => (
+                  <div key={idx} className={idx === 2 ? "col-span-full" : ""}>
+                    <label className="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">Claim Headline Line {idx + 1}</label>
+                    <input type="text" value={line} onChange={e => {
+                      const newLines = [...claimHeadline];
+                      newLines[idx] = e.target.value;
+                      setClaimHeadline(newLines);
+                    }} className="w-full border border-slate-300 rounded px-4 py-2 focus:outline-none focus:border-forest" />
+                  </div>
+                ))}
+                <div className="col-span-full">
+                  <label className="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">Section Quote</label>
+                  <textarea value={claimQuote} onChange={e => setClaimQuote(e.target.value)} rows={3} className="w-full border border-slate-300 rounded px-4 py-2 focus:outline-none focus:border-forest italic" />
+                </div>
+              </div>
+            </div>
+
+            {/* Federation Section */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-bold text-forest uppercase tracking-widest border-l-4 border-saffron pl-4">Federation Section</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {fedHeadline.map((line, idx) => (
+                  <div key={idx}>
+                    <label className="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">Fed Headline Line {idx + 1}</label>
+                    <input type="text" value={line} onChange={e => {
+                      const newLines = [...fedHeadline];
+                      newLines[idx] = e.target.value;
+                      setFedHeadline(newLines);
+                    }} className="w-full border border-slate-300 rounded px-4 py-2 focus:outline-none focus:border-forest" />
+                  </div>
+                ))}
+                <div className="col-span-full">
+                  <label className="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">Federation Subtext</label>
+                  <textarea value={fedSubtext} onChange={e => setFedSubtext(e.target.value)} rows={2} className="w-full border border-slate-300 rounded px-4 py-2 focus:outline-none focus:border-forest" />
+                </div>
+              </div>
+            </div>
+
+            {/* Partnership Section */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-bold text-forest uppercase tracking-widest border-l-4 border-saffron pl-4">Partnership Quote</h3>
+              <div className="grid grid-cols-1 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">Practitioner Quote (Black Box)</label>
+                  <textarea value={partnerQuote} onChange={e => setPartnerQuote(e.target.value)} rows={3} className="w-full border border-slate-300 rounded px-4 py-2 focus:outline-none focus:border-forest italic" />
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-8 border-t flex justify-end">
+              <button type="submit" className="bg-forest text-white px-12 py-3 rounded font-bold hover:bg-forest/90 transition-all shadow-lg hover:shadow-forest/20">
+                Save All Changes
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
       {activeTab === 'banners' && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
