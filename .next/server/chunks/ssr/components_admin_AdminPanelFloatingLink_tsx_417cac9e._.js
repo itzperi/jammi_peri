@@ -1,3 +1,0 @@
-module.exports=[74384,a=>{"use strict";var b=a.i(87924),c=a.i(72131),d=a.i(38246);function e(){let[a,e]=(0,c.useState)(!1);return((0,c.useEffect)(()=>{},[]),a)?(0,b.jsxs)(d.default,{href:"/admin/dashboard",className:"fixed bottom-8 right-8 z-[100] bg-slate-900 text-saffron px-6 py-3 rounded-full font-bold shadow-2xl hover:bg-slate-800 transition-all flex items-center gap-2 border border-saffron/50",children:[(0,b.jsx)("span",{className:"material-symbols-outlined text-sm",children:"shield_person"}),"Admin Panel"]}):null}a.s(["default",()=>e])}];
-
-//# sourceMappingURL=components_admin_AdminPanelFloatingLink_tsx_417cac9e._.js.map
