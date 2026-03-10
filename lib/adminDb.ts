@@ -17,6 +17,10 @@ export const subscribeToCollection = (
     collectionName: string, 
     callback: (data: any[]) => void
 ) => {
+    if (!db) {
+        console.warn(`Firestore: db is null, cannot subscribe to ${collectionName}`);
+        return () => {};
+    }
     const q = query(collection(db, collectionName));
     return onSnapshot(q, (snapshot) => {
         const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -30,6 +34,10 @@ export const subscribeToDocument = (
     id: string,
     callback: (data: any) => void
 ) => {
+    if (!db) {
+        console.warn(`Firestore: db is null, cannot subscribe to doc ${id} in ${collectionName}`);
+        return () => {};
+    }
     const docRef = doc(db, collectionName, id);
     return onSnapshot(docRef, (snapshot) => {
         if (snapshot.exists()) {
@@ -42,21 +50,33 @@ export const subscribeToDocument = (
 
 // Generic CRUD helpers
 export const fetchCollection = async (collectionName: string) => {
-    const q = query(collection(db, collectionName)); // You can add default ordering if needed or pass as args
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    if (!db) return [];
+    try {
+        const q = query(collection(db, collectionName)); 
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } catch (e) {
+        console.error(`fetchCollection error for ${collectionName}:`, e);
+        return [];
+    }
 };
 
 export const fetchDocument = async (collectionName: string, id: string) => {
-    const docRef = doc(db, collectionName, id);
-    const snapshot = await getDoc(docRef);
-    if (snapshot.exists()) {
-        return { id: snapshot.id, ...snapshot.data() };
+    if (!db) return null;
+    try {
+        const docRef = doc(db, collectionName, id);
+        const snapshot = await getDoc(docRef);
+        if (snapshot.exists()) {
+            return { id: snapshot.id, ...snapshot.data() };
+        }
+    } catch (e) {
+        console.error(`fetchDocument error for ${collectionName}/${id}:`, e);
     }
     return null;
 };
 
 export const createDocument = async (collectionName: string, data: any) => {
+    if (!db) throw new Error("Database not initialized");
     const docRef = await addDoc(collection(db, collectionName), {
         ...data,
         createdAt: new Date().toISOString(),
@@ -66,6 +86,7 @@ export const createDocument = async (collectionName: string, data: any) => {
 };
 
 export const updateDocument = async (collectionName: string, id: string, data: any) => {
+    if (!db) throw new Error("Database not initialized");
     const docRef = doc(db, collectionName, id);
     await updateDoc(docRef, {
         ...data,
@@ -74,6 +95,8 @@ export const updateDocument = async (collectionName: string, id: string, data: a
 };
 
 export const deleteDocument = async (collectionName: string, id: string) => {
+    if (!db) throw new Error("Database not initialized");
     const docRef = doc(db, collectionName, id);
     await deleteDoc(docRef);
 };
+
