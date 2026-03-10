@@ -1,8 +1,7 @@
 import React from 'react';
-import { MOCK_PRODUCTS } from '../../../../constants';
-import { notFound } from 'next/navigation';
 import ProductTemplate from './ProductTemplate';
 import { Metadata, ResolvingMetadata } from 'next';
+import { MOCK_PRODUCTS } from '../../../../constants'; // Keep for metadata generation if needed
 
 type Props = {
   params: Promise<{ id: string }>
@@ -17,7 +16,7 @@ export async function generateMetadata(
 
   if (!product) {
     return {
-      title: 'Product Not Found - Jammi Pharmaceuticals',
+      title: 'Product - Jammi Pharmaceuticals',
     };
   }
 
@@ -29,12 +28,6 @@ export async function generateMetadata(
 
 export default async function ProductPage({ params }: Props) {
   const { id } = await params;
-
-  const product = MOCK_PRODUCTS.find(p => p.id === id);
-
-  if (!product) {
-    notFound();
-  }
-
-  return <ProductTemplate product={product} />;
+  // Passing the ID to the client template where it will fetch the real data from Firebase
+  return <ProductTemplate productId={id} />;
 }

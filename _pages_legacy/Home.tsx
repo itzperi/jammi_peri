@@ -31,10 +31,10 @@ const Home: React.FC = () => {
           </div>
 
           {/* Headline */}
-          <h1 className="font-serif leading-none mb-6">
+          <h1 className="font-serif leading-[1.1] sm:leading-none mb-6">
             <span className="block text-white font-bold text-5xl sm:text-7xl md:text-8xl uppercase tracking-tight">INDIA'S</span>
-            <span className="block text-saffron italic text-6xl sm:text-8xl md:text-9xl pl-2 tracking-tight -mt-4 sm:-mt-6">Healthcare</span>
-            <span className="block text-white font-bold text-5xl sm:text-7xl md:text-8xl uppercase tracking-tight -mt-2 sm:-mt-4 relative z-10">RENAISSANCE.</span>
+            <span className="block text-saffron italic text-6xl sm:text-8xl md:text-9xl pl-2 tracking-tight sm:-mt-6">Healthcare</span>
+            <span className="block text-white font-bold text-5xl sm:text-7xl md:text-8xl uppercase tracking-tight sm:-mt-4 relative z-10">RENAISSANCE.</span>
           </h1>
 
           {/* Subtext */}
@@ -171,7 +171,7 @@ const Home: React.FC = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
-              <Link href="/partners" className="bg-saffron text-white font-bold px-8 py-5 flex justify-between items-center hover:-translate-y-1 transition-transform border border-saffron w-full sm:w-auto text-sm uppercase tracking-widest text-center shadow-lg leading-none">
+              <Link href="/federation" className="bg-saffron text-white font-bold px-8 py-5 flex justify-between items-center hover:-translate-y-1 transition-transform border border-saffron w-full sm:w-auto text-sm uppercase tracking-widest text-center shadow-lg leading-none">
                 BECOME A PARTNER
                 <span className="material-symbols-outlined ml-2">arrow_forward</span>
               </Link>

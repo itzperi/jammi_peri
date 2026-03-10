@@ -1,0 +1,9 @@
+{
+  "[project]/node_modules/react-quill/lib/index.js [app-client] (ecmascript, next/dynamic entry)": {
+    "id": "[project]/node_modules/react-quill/lib/index.js [app-client] (ecmascript, next/dynamic entry)",
+    "files": [
+      "static/chunks/node_modules_988313d6._.js",
+      "static/chunks/node_modules_react-quill_lib_index_5964d5da.js"
+    ]
+  }
+}

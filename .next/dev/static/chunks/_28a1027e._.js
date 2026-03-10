@@ -46,7 +46,7 @@ const ProductCard = ({ product })=>{
                 columnNumber: 7
             }, ("TURBOPACK compile-time value", void 0)),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h4", {
-                className: "font-serif text-2xl mb-2 group-hover:text-primary transition-colors text-slate-900",
+                className: "font-sans font-bold text-2xl mb-2 group-hover:text-primary transition-colors text-slate-900",
                 children: product.name
             }, void 0, false, {
                 fileName: "[project]/components/ProductCard.tsx",
@@ -200,7 +200,7 @@ const Home = ()=>{
                                 columnNumber: 11
                             }, ("TURBOPACK compile-time value", void 0)),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
-                                className: "font-serif leading-none mb-6",
+                                className: "font-serif leading-[1.1] sm:leading-none mb-6",
                                 children: [
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                         className: "block text-white font-bold text-5xl sm:text-7xl md:text-8xl uppercase tracking-tight",
@@ -211,7 +211,7 @@ const Home = ()=>{
                                         columnNumber: 13
                                     }, ("TURBOPACK compile-time value", void 0)),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                        className: "block text-saffron italic text-6xl sm:text-8xl md:text-9xl pl-2 tracking-tight -mt-4 sm:-mt-6",
+                                        className: "block text-saffron italic text-6xl sm:text-8xl md:text-9xl pl-2 tracking-tight sm:-mt-6",
                                         children: "Healthcare"
                                     }, void 0, false, {
                                         fileName: "[project]/_pages_legacy/Home.tsx",
@@ -219,7 +219,7 @@ const Home = ()=>{
                                         columnNumber: 13
                                     }, ("TURBOPACK compile-time value", void 0)),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
-                                        className: "block text-white font-bold text-5xl sm:text-7xl md:text-8xl uppercase tracking-tight -mt-2 sm:-mt-4 relative z-10",
+                                        className: "block text-white font-bold text-5xl sm:text-7xl md:text-8xl uppercase tracking-tight sm:-mt-4 relative z-10",
                                         children: "RENAISSANCE."
                                     }, void 0, false, {
                                         fileName: "[project]/_pages_legacy/Home.tsx",
@@ -755,7 +755,7 @@ const Home = ()=>{
                                     className: "flex flex-col sm:flex-row gap-4 pt-4",
                                     children: [
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
-                                            href: "/partners",
+                                            href: "/federation",
                                             className: "bg-saffron text-white font-bold px-8 py-5 flex justify-between items-center hover:-translate-y-1 transition-transform border border-saffron w-full sm:w-auto text-sm uppercase tracking-widest text-center shadow-lg leading-none",
                                             children: [
                                                 "BECOME A PARTNER",

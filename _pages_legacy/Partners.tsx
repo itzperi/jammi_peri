@@ -39,7 +39,7 @@ const Partners: React.FC = () => {
     ];
 
     return (
-        <div className="bg-background-light pt-[5rem] font-body">
+        <div id="partner" className="bg-background-light font-body">
 
             {/* Section A: Hero */}
             <section className="bg-background-light py-20 lg:py-32 border-b border-slate-200">

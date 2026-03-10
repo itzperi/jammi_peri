@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import AdminPanelFloatingLink from '../../../components/admin/AdminPanelFloatingLink';
 
 export const metadata = {
     title: 'Our Founders - Jammi Pharmaceuticals',
@@ -127,7 +128,7 @@ export default function FoundersPage() {
 
                 </div>
             </section>
-
+            <AdminPanelFloatingLink />
         </div>
     );
 }

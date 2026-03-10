@@ -9,9 +9,28 @@
   --color-background-light: #FDF9F0;
   --color-background-dark: #2a1c12; /* Changed to dark earth tone */
   
+  /* Missing jscolors for Federation */
+  --color-ivory: #FAF8F2;
+  --color-parchment: #EDE5D8;
+  --color-espresso: #1C1411;
+  --color-espresso-deep: #0D0907;
+  --color-gold: #C9A84C;
+  --color-gold-light: #E8C96D;
+  --color-bronze: #8B6914;
+  --color-blush: #D4B896;
+  --color-taupe: #9E8E7E;
+  --color-ink: #2C2420;
+
   --font-sans: "Inter", "DM Sans", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "Playfair Display", serif;
   --font-dm: "DM Sans", sans-serif;
+
+  /* New Fonts for Federation */
+  --font-cormorant: var(--font-cormorant);
+  --font-playfair: var(--font-playfair);
+  --font-garamond: var(--font-garamond);
+  --font-cinzel: var(--font-cinzel);
+  --font-dm-mono: var(--font-dm-mono);
 }
 
 @layer utilities {

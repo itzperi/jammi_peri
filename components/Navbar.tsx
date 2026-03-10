@@ -8,10 +8,10 @@ const Navbar: React.FC = () => {
   return (
     <>
       {/* Top accent: thin orange/saffron stripe across the very top of the page */}
-      <div className="h-1 w-full bg-saffron absolute top-0 left-0 z-[60]"></div>
-      <header className="fixed top-1 z-50 w-full glass-header shadow-sm bg-white/80 backdrop-blur-md border-b border-slate-200/50 transition-all">
+      <div className="h-1 w-full bg-saffron fixed top-0 left-0 z-[60]"></div>
+      <header className="fixed top-1 z-50 w-full glass-header shadow-sm bg-white/95 backdrop-blur-md border-b border-slate-200/50 transition-all">
         <div className="max-w-7xl mx-auto px-4 lg:px-10 h-20 flex items-center justify-between">
-          <Link href="/" className="flex flex-col items-center justify-center group relative mt-1" onClick={() => setMobileMenuOpen(false)}>
+          <Link href="/" className="flex flex-col items-center justify-center group relative" onClick={() => setMobileMenuOpen(false)}>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight uppercase text-forest leading-none">
               JAMMI
             </h1>
@@ -22,12 +22,11 @@ const Navbar: React.FC = () => {
           <nav className="hidden lg:flex items-center gap-8 text-sm font-bold text-forest tracking-wide">
             <Link className="hover:text-saffron transition-colors uppercase" href="/heritage">The Legacy</Link>
             <Link className="hover:text-saffron transition-colors uppercase" href="/founders">The Founders</Link>
-            <Link className="hover:text-saffron transition-colors uppercase" href="/shop">The Pharmacy</Link>
-            <Link className="hover:text-saffron transition-colors uppercase relative" href="/partners">
-              Partner With Us
+            <Link className="hover:text-saffron transition-colors uppercase" href="/shop">Shop</Link>
+            <Link className="hover:text-saffron transition-colors uppercase relative" href="/federation">
+              The Federation
               <span className="absolute -top-3 -right-4 bg-saffron text-white text-[9px] px-1.5 py-0.5 rounded-sm shadow-sm animate-pulse">NEW</span>
             </Link>
-            <Link className="hover:text-saffron transition-colors uppercase" href="/federation">The Federation</Link>
           </nav>
 
           <div className="flex items-center gap-2 sm:gap-4">
@@ -62,12 +61,11 @@ const Navbar: React.FC = () => {
           <nav className="flex flex-col gap-6 text-xl font-bold text-forest tracking-wide">
             <Link className="hover:text-saffron transition-colors uppercase border-b border-slate-100 pb-2" href="/heritage" onClick={() => setMobileMenuOpen(false)}>The Legacy</Link>
             <Link className="hover:text-saffron transition-colors uppercase border-b border-slate-100 pb-2" href="/founders" onClick={() => setMobileMenuOpen(false)}>The Founders</Link>
-            <Link className="hover:text-saffron transition-colors uppercase border-b border-slate-100 pb-2" href="/shop" onClick={() => setMobileMenuOpen(false)}>The Pharmacy</Link>
-            <Link className="hover:text-saffron transition-colors uppercase border-b border-slate-100 pb-2 relative inline-flex items-center gap-3 w-fit" href="/partners" onClick={() => setMobileMenuOpen(false)}>
-              Partner With Us
+            <Link className="hover:text-saffron transition-colors uppercase border-b border-slate-100 pb-2" href="/shop" onClick={() => setMobileMenuOpen(false)}>Shop</Link>
+            <Link className="hover:text-saffron transition-colors uppercase border-b border-slate-100 pb-2 relative inline-flex items-center gap-3 w-fit" href="/federation" onClick={() => setMobileMenuOpen(false)}>
+              The Federation
               <span className="bg-saffron text-white text-[10px] px-2 py-0.5 rounded-sm">NEW</span>
             </Link>
-            <Link className="hover:text-saffron transition-colors uppercase border-b border-slate-100 pb-2" href="/federation" onClick={() => setMobileMenuOpen(false)}>The Federation</Link>
             <Link className="hover:text-saffron transition-colors uppercase border-b border-slate-100 pb-2" href="/journal" onClick={() => setMobileMenuOpen(false)}>The Journal</Link>
             <Link className="hover:text-saffron transition-colors uppercase border-b border-slate-100 pb-2" href="/consultation" onClick={() => setMobileMenuOpen(false)}>Book Consultation</Link>
           </nav>

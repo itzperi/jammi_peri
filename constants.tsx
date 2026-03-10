@@ -811,7 +811,7 @@ export const MOCK_PRODUCTS: any[] = [
     shortDesc: 'Ancient Wisdom meets Modern Convenience. Experience a plastic-free smile crafted from centuries-old Ayurvedic botanicals.',
     price: 15,
     originalPrice: null,
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB3Hvl9I4wTJeb2KAMMGbycsJtSjIDDQuDb9bQG4keN1hUnk4hP2wsXeRbL_9-LGPhH0Bc2VhhTwJCH3HGZ0L0rOQk9bkQ12GZUlVTYfjpLMygiiiSg4oPdb1kktiOQd2SWfqpx8XC8RVJGfq8leeS6xNU5bxTXkPGTqcSTatYn7JdjWK6i_3PnajOE2L07-6Q0ek49ap2KGipuNV1Q6bjVzWgM5TCWYLLmmIf0sOxJCdmp1E8MTjVSVXpocOsSH-sTnBXsMt5HzRI',
+    image: '/images/CrushNBrush_2.png',
     category: 'Oral Care  Wellness',
     features: [
       { title: 'Enamel Protection', desc: 'Strengthens teeth naturally.', icon: 'shield' },
@@ -839,7 +839,7 @@ export const MOCK_PRODUCTS: any[] = [
     shortDesc: 'Advanced Ayurvedic formulation for flawless, radiant skin.',
     price: 34,
     originalPrice: 42,
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD7fKXs2kHNz0SG2k5vQytyMyJUoQwtD34hmnjLo4kdiusjR6AtUV_RdgF2hC6Eh2IP4LzmgpvMJCl7laIsqWCculWcWOyodkY0HYUL9jm8T7mnCLqbf-4orxil-skpi2wO03ADo7DZE7n-6GInHDeLm2Lhey-del0Nz4NnBAM9QkeiDwdDzuljPC_-jKDOdu20RZxIjbcr_e-fyDUY1Pw7feQDo3xLwmyd1PIvKF4S_uOzjX8rzj0VI-FVk2xqRILFG_5MUFLHPEg',
+    image: '/images/Clear Marks.jpeg',
     category: 'Skin & Hair Care',
     features: [
       { title: 'Reduces blemishes', desc: 'Addresses hyperpigmentation and acne scars.', icon: 'auto_fix_high' },

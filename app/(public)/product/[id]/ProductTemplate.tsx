@@ -1,8 +1,10 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { subscribeToDocument, subscribeToCollection, createDocument } from '../../../../lib/adminDb';
+import { MOCK_PRODUCTS } from '../../../../constants';
 
-// Helper interface based on constants.tsx structure
 interface Product {
     id: string;
     name: string;
@@ -11,15 +13,101 @@ interface Product {
     price: number;
     image: string;
     category: string;
-    features: Array<{ title: string; desc: string; icon: string }>;
+    description?: string;
+    features?: Array<{ title: string; desc: string; icon: string }>;
     botanicals?: Array<{ name: string; desc: string; image: string }>;
     ritual?: Array<{ title: string; desc: string }>;
-    results?: Array<{ percentage: string; text: string }>;
 }
 
-export default function ProductTemplate({ product }: { product: Product }) {
+export default function ProductTemplate({ productId }: { productId: string }) {
+    const router = useRouter();
+    const [product, setProduct] = useState<Product | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
     const [quantity, setQuantity] = useState(1);
     const [selectedAngle, setSelectedAngle] = useState(0);
+
+    // Reviews & Bundles
+    const [reviews, setReviews] = useState<any[]>([]);
+    const [bundles, setBundles] = useState<any[]>([]);
+    
+    // Review Form States
+    const [reviewName, setReviewName] = useState('');
+    const [reviewRating, setReviewRating] = useState(5);
+    const [reviewComment, setReviewComment] = useState('');
+    const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+    const [reviewSuccess, setReviewSuccess] = useState(false);
+
+    useEffect(() => {
+        setIsLoading(true);
+
+        const unsubProduct = subscribeToDocument('products', productId, (dbProduct) => {
+            if (dbProduct && !dbProduct.deleted && dbProduct.status !== 'Draft') {
+                setProduct({
+                    id: dbProduct.id,
+                    name: dbProduct.name,
+                    label: dbProduct.category || 'Wellness',
+                    shortDesc: dbProduct.description ? dbProduct.description.replace(/<[^>]+>/g, '') : (dbProduct.shortDesc || 'Traditional formulation.'),
+                    price: dbProduct.basePrice || dbProduct.price || 0,
+                    image: dbProduct.images?.[0] || dbProduct.image || 'https://images.unsplash.com/photo-1629198688000-71f23e745b6e?q=80&w=800&auto=format&fit=crop',
+                    category: dbProduct.category || 'Wellness',
+                    features: dbProduct.features || [],
+                    botanicals: dbProduct.botanicals || [],
+                    ritual: dbProduct.ritual || []
+                });
+            } else if (!dbProduct || (dbProduct.deleted && dbProduct.status)) {
+                // If soft deleted from DB, don't fallback to mock
+                if (dbProduct && dbProduct.deleted) {
+                     setProduct(null);
+                } else {
+                     const mockP = MOCK_PRODUCTS.find((m: any) => String(m.id) === productId);
+                     if (mockP) {
+                         setProduct({ ...mockP, id: String(mockP.id) });
+                     } else {
+                         setProduct(null);
+                     }
+                }
+            }
+            setIsLoading(false);
+        });
+
+        const unsubReviews = subscribeToCollection('reviews', (r) => {
+            setReviews(r.filter(review => review.productId === productId && review.status === 'Approved').sort((a,b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()));
+        });
+
+        const unsubBundles = subscribeToCollection('bundles', (b) => {
+            setBundles(b.filter(bundle => bundle.isActive && bundle.productIds.includes(productId)));
+        });
+
+        return () => {
+            unsubProduct();
+            unsubReviews();
+            unsubBundles();
+        };
+    }, [productId]);
+
+    const handleReviewSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!product) return;
+        setIsSubmittingReview(true);
+        try {
+            await createDocument('reviews', {
+                productId: product.id,
+                productName: product.name,
+                customerName: reviewName,
+                rating: reviewRating,
+                comment: reviewComment,
+                status: 'Pending',
+                createdAt: new Date().toISOString()
+            });
+            setReviewSuccess(true);
+            setReviewName(''); setReviewRating(5); setReviewComment('');
+        } catch (err) {
+            console.error(err);
+            alert("Failed to submit review.");
+        } finally {
+            setIsSubmittingReview(false);
+        }
+    };
 
     const handleQuantityChange = (action: 'increase' | 'decrease') => {
         if (action === 'decrease' && quantity > 1) {
@@ -29,7 +117,6 @@ export default function ProductTemplate({ product }: { product: Product }) {
         }
     };
 
-    // The 4 dynamic angles using CSS transformations
     const imageAngles = [
         { id: 0, style: {}, icon: 'image', label: 'Front View' },
         { id: 1, style: { transform: 'scale(1.2) translateY(-5%)' }, icon: 'zoom_in', label: 'Details' },
@@ -37,8 +124,25 @@ export default function ProductTemplate({ product }: { product: Product }) {
         { id: 3, style: { transform: 'scaleX(-1)' }, icon: 'flip', label: 'Profile' },
     ];
 
+    if (isLoading) {
+        return (
+            <div className="bg-background-light min-h-screen pt-20 flex justify-center items-center">
+                <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+            </div>
+        );
+    }
+
+    if (!product) {
+        return (
+            <div className="bg-background-light min-h-screen pt-20 flex flex-col justify-center items-center">
+                <h1 className="text-3xl font-bold mb-4">Product Not Found</h1>
+                <Link href="/shop" className="text-primary underline font-bold">Back to Shop</Link>
+            </div>
+        );
+    }
+
     return (
-        <div className="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-body min-h-screen pt-20">
+        <div className="bg-background-light text-slate-900 font-body min-h-screen pt-20">
             <main className="max-w-7xl mx-auto px-4 md:px-10 py-8">
                 {/* Breadcrumbs */}
                 <nav className="flex flex-wrap items-center gap-2 text-sm text-slate-500 mb-8 font-body">
@@ -53,7 +157,6 @@ export default function ProductTemplate({ product }: { product: Product }) {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-16 mb-24">
                     {/* Visual & Gallery */}
                     <div className="flex flex-col-reverse md:flex-row gap-6">
-                        {/* Thumbnails (Vertical on Desktop, Horizontal on Mobile) */}
                         <div className="flex md:flex-col gap-4 overflow-x-auto md:overflow-visible pb-4 md:pb-0 hide-scrollbar shrink-0 w-full md:w-auto">
                             {imageAngles.map((angle, index) => (
                                 <div
@@ -63,7 +166,7 @@ export default function ProductTemplate({ product }: { product: Product }) {
                                     className={`w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-2xl border-2 overflow-hidden p-2 cursor-pointer shadow-sm transition-all duration-300 flex-shrink-0 flex items-center justify-center relative ${selectedAngle === index ? 'border-primary bg-primary/5' : 'border-secondary/10 bg-white dark:bg-slate-800 hover:border-primary/40'}`}
                                 >
                                     {index === 0 ? (
-                                        <img alt={`${product.name} thumbnail`} className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal" src={product.image} />
+                                        <img alt="thumbnail" className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal" src={product.image} />
                                     ) : (
                                         <span className={`material-symbols-outlined text-2xl sm:text-3xl ${selectedAngle === index ? 'text-primary' : 'text-slate-300 dark:text-slate-600'}`}>{angle.icon}</span>
                                     )}
@@ -73,12 +176,9 @@ export default function ProductTemplate({ product }: { product: Product }) {
                         {/* Main Image Viewport */}
                         <div className="flex-1 aspect-square sm:aspect-[4/5] bg-gradient-to-t from-slate-100 to-white dark:from-slate-900 dark:to-slate-800 rounded-[2rem] border border-secondary/5 flex items-center justify-center p-8 relative overflow-hidden group w-full">
                             <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                            <div className="absolute -bottom-10 -right-10 w-40 h-40 md:w-64 md:h-64 bg-primary/20 blur-[60px] md:blur-[80px] rounded-full"></div>
                             <div className="absolute top-4 left-4 sm:top-6 sm:left-6 flex gap-2 z-10">
                                 <span className="bg-secondary text-white text-[9px] sm:text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-widest shadow-lg">{product.category}</span>
                             </div>
-
-                            {/* The dynamic image with CSS transforms applied based on selected angle */}
                             <div className="w-[85%] h-[85%] relative z-10 drop-shadow-2xl transition-all duration-700 ease-in-out" style={imageAngles[selectedAngle].style}>
                                 <img
                                     alt={product.name}
@@ -98,18 +198,6 @@ export default function ProductTemplate({ product }: { product: Product }) {
                         <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 mb-8 font-body leading-relaxed">
                             {product.shortDesc}
                         </p>
-
-                        {/* Top Features / Badges */}
-                        {product.features && product.features.length > 0 && (
-                            <div className="flex flex-wrap gap-2 sm:gap-3 mb-10">
-                                {product.features.map((feature, idx) => (
-                                    <div key={idx} className="flex items-center gap-1.5 sm:gap-2 border border-secondary/20 rounded-full px-3 py-1 sm:px-4 sm:py-1.5 bg-white dark:bg-slate-800">
-                                        <span className="material-symbols-outlined text-[14px] sm:text-[1rem] text-primary">{feature.icon}</span>
-                                        <span className="text-[10px] sm:text-xs font-bold text-secondary dark:text-white uppercase tracking-wider">{feature.title}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
 
                         {/* Price & Cart Actions */}
                         <div className="bg-slate-50 dark:bg-slate-800/50 rounded-3xl p-6 md:p-8 border border-slate-200 dark:border-slate-700">
@@ -150,8 +238,8 @@ export default function ProductTemplate({ product }: { product: Product }) {
                 </div>
 
                 {/* Legacy Banner */}
-                <div className="w-full bg-cover bg-center rounded-3xl overflow-hidden mb-16 sm:mb-24 relative" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1616401784845-180882ba9ba8?q=80&w=2670&auto=format&fit=crop')" }}>
-                    <div className="absolute inset-0 bg-secondary/90 backdrop-blur-sm mix-blend-multiply"></div>
+                <div className="w-full bg-cover bg-center rounded-3xl overflow-hidden mb-16 sm:mb-24 relative" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1512290923902-8a9f81dc236c?q=80&w=2670&auto=format&fit=crop')" }}>
+                    <div className="absolute inset-0 bg-forest/80 backdrop-blur-sm"></div>
                     <div className="relative z-10 p-8 sm:p-12 md:p-20 text-center max-w-4xl mx-auto flex flex-col items-center">
                         <span className="material-symbols-outlined text-primary text-4xl sm:text-5xl mb-4 sm:mb-6 opacity-80">auto_stories</span>
                         <h3 className="text-2xl sm:text-3xl md:text-5xl font-display font-medium text-white mb-4 sm:mb-6 leading-tight">A Formulation Born of Heritage</h3>
@@ -161,79 +249,99 @@ export default function ProductTemplate({ product }: { product: Product }) {
                     </div>
                 </div>
 
-                {/* Key Indications / Features grid */}
-                {product.features && product.features.length > 0 && (
+                {/* Bundles Section */}
+                {bundles.length > 0 && (
                     <section className="mb-16 sm:mb-24">
-                        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 sm:mb-12">
-                            <div className="max-w-xl">
-                                <span className="text-primary font-bold tracking-widest uppercase text-[10px] sm:text-sm mb-2 block">Clinical Efficacy</span>
-                                <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold text-secondary dark:text-white font-display">Primary Indications</h3>
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-x-6 sm:gap-y-10">
-                            {product.features.map((feature, idx) => (
-                                <div key={idx} className="relative group p-4 sm:p-0">
-                                    <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl flex items-center justify-center text-secondary dark:text-primary mb-4 sm:mb-6 relative z-10 group-hover:-translate-y-2 transition-transform duration-300">
-                                        <span className="material-symbols-outlined text-xl sm:text-2xl">{feature.icon}</span>
+                        <h3 className="text-3xl font-bold text-secondary dark:text-white mb-8 font-display">Special Offers & Bundles</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {bundles.map(bundle => (
+                                <div key={bundle.id} className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex items-center gap-6">
+                                    <div className="w-24 h-24 bg-slate-100 rounded-xl overflow-hidden shrink-0">
+                                        {bundle.imageUrl ? <img src={bundle.imageUrl} className="w-full h-full object-cover" /> : <span className="material-symbols-outlined text-4xl text-slate-300 w-full h-full flex justify-center items-center">image</span>}
                                     </div>
-                                    <div className="absolute top-4 left-4 sm:top-7 sm:left-7 w-12 h-12 sm:w-14 sm:h-14 bg-primary/10 rounded-2xl -z-0"></div>
-                                    <h4 className="text-lg sm:text-xl font-bold text-secondary dark:text-white mb-2 font-display">{feature.title}</h4>
-                                    <p className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm font-body leading-relaxed">{feature.desc}</p>
+                                    <div className="flex-1">
+                                        <div className="inline-block bg-saffron text-white text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded mb-2">{bundle.discountPercentage}% OFF Bundle</div>
+                                        <h4 className="text-lg font-bold text-slate-800">{bundle.name}</h4>
+                                        <p className="text-sm text-slate-500 line-clamp-2 mt-1">{bundle.description}</p>
+                                        <button className="mt-4 text-primary font-bold text-sm hover:underline">View Bundle Details →</button>
+                                    </div>
                                 </div>
                             ))}
                         </div>
                     </section>
                 )}
 
-                {/* Elaborate Ingredients Section */}
-                {product.botanicals && product.botanicals.length > 0 && (
-                    <section className="mb-16 sm:mb-24 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-sm">
-                        <div className="grid grid-cols-1 md:grid-cols-5">
-                            <div className="md:col-span-2 bg-slate-50 dark:bg-slate-800 p-6 sm:p-10 lg:p-16 flex flex-col justify-center border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-700">
-                                <h3 className="text-2xl sm:text-3xl font-bold text-secondary dark:text-white mb-4 sm:mb-6 font-display">A Symphony of Botanicals</h3>
-                                <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 font-body mb-6 sm:mb-8 leading-relaxed">
-                                    Carefully sourced and meticulously processed according to traditional texts. Our ingredients are unadulterated, potent, and deeply transformative.
-                                </p>
-                            </div>
+                {/* Reviews Section */}
+                <section className="mb-16 sm:mb-24 bg-white dark:bg-slate-900 p-8 sm:p-12 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+                        {/* Write a Review */}
+                        <div className="lg:col-span-1">
+                            <h3 className="text-2xl font-bold text-secondary dark:text-white mb-2 font-display">Customer Reviews</h3>
+                            <p className="text-slate-500 text-sm mb-8">Share your experience with this formulation.</p>
 
-                            <div className="md:col-span-3 p-6 sm:p-10 lg:p-16">
-                                <h4 className="text-[10px] sm:text-sm font-bold text-slate-400 uppercase tracking-widest mb-6 sm:mb-8">Key Ingredients</h4>
-                                <div className="space-y-6 sm:space-y-8">
-                                    {product.botanicals.map((botanical, idx) => (
-                                        <div key={idx} className="flex gap-4 sm:gap-6 items-start">
-                                            <h5 className="text-3xl sm:text-4xl font-display font-light text-slate-300 dark:text-slate-600 w-8 sm:w-12 shrink-0">0{idx + 1}</h5>
+                            {reviewSuccess ? (
+                                <div className="bg-green-50 text-green-800 p-4 rounded-xl border border-green-200 text-sm font-medium flex items-start gap-2">
+                                    <span className="material-symbols-outlined text-[20px] text-green-500">check_circle</span>
+                                    Thank you! Your review has been submitted and is pending moderation.
+                                </div>
+                            ) : (
+                                <form onSubmit={handleReviewSubmit} className="space-y-4">
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">Your Name</label>
+                                        <input type="text" value={reviewName} onChange={e => setReviewName(e.target.value)} required className="w-full border border-slate-300 rounded-lg px-4 py-2 focus:outline-none focus:border-primary" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">Rating</label>
+                                        <div className="flex gap-1">
+                                            {[1, 2, 3, 4, 5].map(star => (
+                                                <span key={star} onClick={() => setReviewRating(star)} className={`material-symbols-outlined text-2xl cursor-pointer transition-colors ${star <= reviewRating ? 'text-saffron font-variation-settings-"FILL" 1' : 'text-slate-300'}`}>
+                                                    star
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">Your Review</label>
+                                        <textarea value={reviewComment} onChange={e => setReviewComment(e.target.value)} required rows={4} className="w-full border border-slate-300 rounded-lg px-4 py-2 focus:outline-none focus:border-primary resize-none" placeholder="How did this product help you?" />
+                                    </div>
+                                    <button type="submit" disabled={isSubmittingReview} className="w-full bg-secondary text-white font-bold py-3 rounded-xl hover:bg-slate-800 transition-colors disabled:opacity-50">
+                                        {isSubmittingReview ? 'Submitting...' : 'Submit Review'}
+                                    </button>
+                                </form>
+                            )}
+                        </div>
+
+                        {/* Reviews List */}
+                        <div className="lg:col-span-2 space-y-6">
+                            {reviews.length === 0 ? (
+                                <div className="h-full flex flex-col items-center justify-center text-slate-400 p-8 border-2 border-dashed border-slate-200 rounded-2xl">
+                                    <span className="material-symbols-outlined text-4xl mb-2">reviews</span>
+                                    <p>No reviews yet. Be the first to share your experience!</p>
+                                </div>
+                            ) : (
+                                reviews.map(review => (
+                                    <div key={review.id} className="p-6 bg-slate-50 dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700">
+                                        <div className="flex justify-between items-start mb-3">
                                             <div>
-                                                <h6 className="text-lg sm:text-xl font-bold text-secondary dark:text-white mb-1 sm:mb-2 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">{botanical.name}</h6>
-                                                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-body leading-relaxed">{botanical.desc}</p>
+                                                <h4 className="font-bold text-slate-900 dark:text-white text-lg">{review.customerName}</h4>
+                                                <span className="text-xs text-slate-500">{new Date(review.createdAt).toLocaleDateString()}</span>
+                                            </div>
+                                            <div className="flex text-saffron">
+                                                {[1, 2, 3, 4, 5].map(star => (
+                                                    <span key={star} className={`material-symbols-outlined text-[16px] ${star <= review.rating ? 'font-variation-settings-"FILL" 1' : ''}`}>
+                                                        star
+                                                    </span>
+                                                ))}
                                             </div>
                                         </div>
-                                    ))}
-                                </div>
-                            </div>
+                                        <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">{review.comment}</p>
+                                    </div>
+                                ))
+                            )}
                         </div>
-                    </section>
-                )}
+                    </div>
+                </section>
 
-                {/* Application/Ritual Methods */}
-                {product.ritual && product.ritual.length > 0 && (
-                    <section className="mb-16 sm:mb-24">
-                        <h3 className="text-2xl sm:text-3xl font-bold text-center text-secondary dark:text-white mb-2 sm:mb-4 font-display">Recommended Usage</h3>
-                        <p className="text-center text-sm sm:text-base text-slate-500 font-body mb-8 sm:mb-12 max-w-2xl mx-auto px-4">For optimal results, follow the therapeutic rituals correctly.</p>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
-                            {product.ritual.map((step, idx) => (
-                                <div key={idx} className="bg-slate-50 dark:bg-slate-800 rounded-2xl sm:rounded-3xl p-6 sm:p-8 border border-slate-100 dark:border-slate-700 hover:shadow-md transition-shadow">
-                                    <h4 className="text-base sm:text-lg font-bold text-secondary dark:text-white mb-3 sm:mb-4 flex items-center gap-2">
-                                        <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs sm:text-sm">{idx + 1}</div>
-                                        {step.title}
-                                    </h4>
-                                    <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-body leading-relaxed">{step.desc}</p>
-                                </div>
-                            ))}
-                        </div>
-                    </section>
-                )}
             </main>
         </div>
     );

@@ -1,16 +1,37 @@
 
 "use client";
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
+import { useFederationStore } from '../store/federationStore';
+import AdminLoginModal from './admin/AdminLoginModal';
 
 const Footer: React.FC = () => {
   const router = useRouter();
   const pathname = usePathname();
   const isMahanarayana = pathname === '/product/mahanarayana';
+  const { incrementFooterClick } = useFederationStore();
 
-  const handleAdminAccess = () => {
-    router.push('/admin');
+  const [adminClicks, setAdminClicks] = useState(0);
+  const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
+  const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleLogoClick = () => {
+    const newClicks = adminClicks + 1;
+    setAdminClicks(newClicks);
+
+    if (clickTimeoutRef.current) {
+      clearTimeout(clickTimeoutRef.current);
+    }
+
+    if (newClicks >= 3) {
+      setIsAdminModalOpen(true);
+      setAdminClicks(0);
+    } else {
+      clickTimeoutRef.current = setTimeout(() => {
+        setAdminClicks(0);
+      }, 5000);
+    }
   };
 
   return (
@@ -19,7 +40,7 @@ const Footer: React.FC = () => {
 
         {/* Column 1: Brand */}
         <div className="space-y-6">
-          <div className={`flex items-center gap-2 ${isMahanarayana ? 'text-primary' : 'text-saffron'} cursor-pointer group select-none`} onClick={handleAdminAccess}>
+          <div className={`flex items-center gap-2 ${isMahanarayana ? 'text-primary' : 'text-saffron'} cursor-pointer group select-none`} onClick={handleLogoClick}>
             <h4 className="text-3xl font-extrabold tracking-tight uppercase">JAMMI</h4>
           </div>
           <blockquote className={`${isMahanarayana ? 'text-slate-600' : 'text-white'} italic text-lg leading-relaxed font-serif`}>
@@ -71,7 +92,7 @@ const Footer: React.FC = () => {
 
       {/* Bottom bar */}
       <div className={`max-w-7xl mx-auto px-6 mt-16 pt-8 border-t ${isMahanarayana ? 'border-slate-200 text-slate-400' : 'border-white/10 text-white/50'} flex flex-col md:flex-row justify-between items-center gap-6 text-[10px] sm:text-xs tracking-widest uppercase font-bold`}>
-        <p>© 2025 JAMMI PHARMACEUTICALS. ALL RIGHTS RESERVED.</p>
+        <p className="cursor-pointer select-none" onClick={incrementFooterClick}>© 2025 JAMMI PHARMACEUTICALS. ALL RIGHTS RESERVED.</p>
         <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
           <a className={`${isMahanarayana ? 'hover:text-slate-600' : 'hover:text-white'} transition-colors`} href="#">Quality Protocols</a>
           <span className="hidden sm:inline">|</span>
@@ -80,6 +101,10 @@ const Footer: React.FC = () => {
           <a className={`${isMahanarayana ? 'hover:text-slate-600' : 'hover:text-white'} transition-colors`} href="#">Wholesale Policy</a>
         </div>
       </div>
+      <AdminLoginModal 
+        isOpen={isAdminModalOpen} 
+        onClose={() => setIsAdminModalOpen(false)} 
+      />
     </footer>
   );
 };
