@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import LiveEditable from '../../components/admin/LiveEditable';
 
 const WidariForte: React.FC = () => {
     const [quantity, setQuantity] = useState(1);
@@ -76,7 +77,7 @@ const WidariForte: React.FC = () => {
 
                         {/* Header Info */}
                         <div className="mb-8">
-                            <h1 className="text-4xl md:text-5xl lg:text-[3.5rem] font-bold font-serif text-[#2E5339] leading-tight mb-4">Widari Forte</h1>
+                            <h1 className="text-4xl md:text-5xl lg:text-[3.5rem] font-bold font-serif text-[#2E5339] leading-tight mb-4"><LiveEditable collection="products_content" docId="widariforte" field="name">Widari Forte</LiveEditable></h1>
                             <p className="text-xl text-gray-600 font-light leading-relaxed">
                                 Comprehensive nutritional support specifically formulated for pregnant and nursing mothers, promoting holistic maternal health and child development.
                             </p>

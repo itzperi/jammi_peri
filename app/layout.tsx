@@ -35,6 +35,9 @@ const dmMono = DM_Mono({
     variable: '--font-dm-mono',
 });
 
+import { AdminProvider } from '../components/admin/AdminContext';
+import EditModeToggle from '../components/admin/EditModeToggle';
+
 export const metadata: Metadata = {
     title: 'Jammi Pharmaceuticals',
     description: '127-year-old Ayurvedic pharmaceutical company blending traditional Indian medicine with modern molecular science',
@@ -51,9 +54,12 @@ export default function RootLayout({
                 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
             </head>
             <body className={`${plusJakarta.variable} ${cormorantSC.variable} ${playfairDisplay.variable} ${ebGaramond.variable} ${cinzel.variable} ${dmMono.variable} font-sans antialiased min-h-screen flex flex-col bg-background-light text-[#1a150f]`}>
-                <main className="flex-grow">
-                    {children}
-                </main>
+                <AdminProvider>
+                    <main className="flex-grow">
+                        {children}
+                    </main>
+                    <EditModeToggle />
+                </AdminProvider>
             </body>
         </html>
     );

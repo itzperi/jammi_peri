@@ -1,9 +1,8 @@
-"use client";
-
 import React, { useState, useEffect } from 'react';
 import ProductCard from '../components/ProductCard';
-import { fetchCollection, subscribeToCollection } from '../lib/adminDb';
+import { subscribeToCollection } from '../lib/adminDb';
 import { MOCK_PRODUCTS } from '../constants';
+import LiveEditable from '../components/admin/LiveEditable';
 
 const Shop: React.FC = () => {
   const [activeCategory, setActiveCategory] = useState('All');
@@ -66,8 +65,12 @@ const Shop: React.FC = () => {
       <main className="max-w-7xl mx-auto px-6 py-12">
         <div className="flex flex-col md:flex-row justify-between items-end gap-8 mb-16">
           <div className="space-y-4">
-            <h2 className="text-5xl font-serif font-black text-slate-900">Curated <span className="text-primary italic">Rituals</span></h2>
-            <p className="text-slate-500 font-dm max-w-md">Explore our collection of traditional formulations, crafted with wisdom and pure botanicals.</p>
+            <h2 className="text-5xl font-serif font-black text-slate-900">
+              <LiveEditable collection="content" docId="shop" field="title">Curated <span className="text-primary italic">Rituals</span></LiveEditable>
+            </h2>
+            <p className="text-slate-500 font-dm max-w-md">
+              <LiveEditable collection="content" docId="shop" field="description">Explore our collection of traditional formulations, crafted with wisdom and pure botanicals.</LiveEditable>
+            </p>
           </div>
           <div className="flex gap-4 overflow-x-auto pb-2 w-full md:w-auto no-scrollbar">
             {categories.map((cat: any) => (

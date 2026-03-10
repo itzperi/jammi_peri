@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect } from 'react';
+import LiveEditable from '../../components/admin/LiveEditable';
 
 const UVSafeSunscreen: React.FC = () => {
     useEffect(() => {
@@ -17,7 +18,7 @@ const UVSafeSunscreen: React.FC = () => {
                                 <span className="material-symbols-outlined text-3xl">spa</span>
                             </div>
                             <div className="flex flex-col">
-                                <h1 className="text-xl font-bold leading-none tracking-tight text-[#2E5339] dark:text-[#D4882E]">JAMMI</h1>
+                                <h1 className="text-xl font-bold leading-none tracking-tight text-[#2E5339] dark:text-[#D4882E]"><LiveEditable collection="products_content" docId="uvsafesunscreen" field="name">JAMMI</LiveEditable></h1>
                                 <span className="text-[10px] uppercase tracking-widest text-[#2E5339]/60 dark:text-[#D4882E]/60">PHARMACEUTICALS • EST. 1899</span>
                             </div>
                         </div>

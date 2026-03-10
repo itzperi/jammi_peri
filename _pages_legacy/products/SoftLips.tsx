@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect } from 'react';
+import LiveEditable from '../../components/admin/LiveEditable';
 
 const SoftLips: React.FC = () => {
     useEffect(() => {
@@ -74,7 +75,7 @@ const SoftLips: React.FC = () => {
                             <span className="material-symbols-outlined text-xs">chevron_right</span>
                             <span className="text-secondary font-medium">SoftLips</span>
                         </nav>
-                        <h1 className="text-4xl lg:text-5xl font-display font-bold text-secondary dark:text-primary mb-2">SoftLips Heritage Balm</h1>
+                        <h1 className="text-4xl lg:text-5xl font-display font-bold text-secondary dark:text-primary mb-2"><LiveEditable collection="products_content" docId="softlips" field="name">SoftLips Heritage Balm</LiveEditable></h1>
                         <p className="text-lg text-secondary/80 italic mb-6">Nourishing the skin since 1924. A legacy of softness.</p>
 
                         <div className="flex items-center gap-4 mb-8">
@@ -93,15 +94,15 @@ const SoftLips: React.FC = () => {
                         <div className="grid grid-cols-3 gap-4 mb-8">
                             <div className="flex flex-col items-center p-3 bg-secondary/5 rounded-xl text-center">
                                 <span className="material-symbols-outlined text-primary mb-1">eco</span>
-                                <span className="text-xs font-bold uppercase tracking-tighter">Nourishes</span>
+                                <span className="text-xs font-bold uppercase tracking-tighter"><LiveEditable collection="products_content" docId="softlips" field="benefit1">Nourishes</LiveEditable></span>
                             </div>
                             <div className="flex flex-col items-center p-3 bg-secondary/5 rounded-xl text-center">
                                 <span className="material-symbols-outlined text-primary mb-1">shield</span>
-                                <span className="text-xs font-bold uppercase tracking-tighter">Protects</span>
+                                <span className="text-xs font-bold uppercase tracking-tighter"><LiveEditable collection="products_content" docId="softlips" field="benefit2">Protects</LiveEditable></span>
                             </div>
                             <div className="flex flex-col items-center p-3 bg-secondary/5 rounded-xl text-center">
                                 <span className="material-symbols-outlined text-primary mb-1">auto_awesome</span>
-                                <span className="text-xs font-bold uppercase tracking-tighter">Softens</span>
+                                <span className="text-xs font-bold uppercase tracking-tighter"><LiveEditable collection="products_content" docId="softlips" field="benefit3">Softens</LiveEditable></span>
                             </div>
                         </div>
 

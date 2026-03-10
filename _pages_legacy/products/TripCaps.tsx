@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
+import LiveEditable from '../../components/admin/LiveEditable';
 
 const TripCaps: React.FC = () => {
     const [quantity, setQuantity] = useState(1);
@@ -60,7 +61,7 @@ const TripCaps: React.FC = () => {
                     {/* Right: Product Info (40%) */}
                     <div className="lg:col-span-4 space-y-6">
                         <div>
-                            <h1 className="text-4xl font-bold font-serif text-[#2E5339] mb-2">Trip Caps</h1>
+                            <h1 className="text-4xl font-bold font-serif text-[#2E5339] mb-2"><LiveEditable collection="products_content" docId="tripcaps" field="name">Trip Caps</LiveEditable></h1>
                             <p className="text-lg text-gray-600 italic">For Smooth Movement and Constipation Relief</p>
                         </div>
                         <div className="flex items-center space-x-4">
@@ -244,7 +245,7 @@ const TripCaps: React.FC = () => {
                             <div className="flex items-center space-x-3">
                                 <div className="w-10 h-10 rounded-full bg-gray-200"></div>
                                 <div>
-                                    <p className="font-bold text-sm">Arjun K.</p>
+                                    <p className="font-bold text-sm"><LiveEditable collection="products_content" docId="tripcaps" field="benefit1Title">Arjun K.</LiveEditable></p>
                                     <p className="text-xs text-gray-500">Verified Buyer</p>
                                 </div>
                             </div>
@@ -261,7 +262,7 @@ const TripCaps: React.FC = () => {
                             <div className="flex items-center space-x-3">
                                 <div className="w-10 h-10 rounded-full bg-gray-200"></div>
                                 <div>
-                                    <p className="font-bold text-sm">Meera S.</p>
+                                    <p className="font-bold text-sm"><LiveEditable collection="products_content" docId="tripcaps" field="benefit2Title">Meera S.</LiveEditable></p>
                                     <p className="text-xs text-gray-500">Verified Buyer</p>
                                 </div>
                             </div>

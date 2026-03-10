@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import LiveEditable from '../../components/admin/LiveEditable';
 
 const ThyroGard: React.FC = () => {
     const [quantity, setQuantity] = useState(1);
@@ -92,7 +93,7 @@ const ThyroGard: React.FC = () => {
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                                 Metabolic Support
                             </div>
-                            <h1 className="text-5xl lg:text-6xl xl:text-[4.5rem] font-bold font-serif text-[#1a150f] leading-none mb-6">ThyroGard</h1>
+                            <h1 className="text-5xl lg:text-6xl xl:text-[4.5rem] font-bold font-serif text-[#1a150f] leading-none mb-6"><LiveEditable collection="products_content" docId="thyrogard" field="name">ThyroGard</LiveEditable></h1>
                             <p className="text-xl lg:text-2xl text-gray-600 font-light leading-relaxed max-w-xl">
                                 Holistic Ayurvedic regulation for optimal thyroid function, energy metabolism, and hormonal harmony.
                             </p>

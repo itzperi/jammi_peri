@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect } from 'react';
+import LiveEditable from '../../components/admin/LiveEditable';
 
 const KumkumadiSerum: React.FC = () => {
     useEffect(() => {
@@ -65,7 +66,7 @@ const KumkumadiSerum: React.FC = () => {
                                         <a href="#">Home</a> <span>/</span> <a href="#">Skin Care</a> <span>/</span> <span className="text-primary">Serums</span>
                                     </nav>
                                     <div className="space-y-2">
-                                        <h1 className="text-4xl md:text-5xl font-black text-secondary dark:text-primary leading-tight">Kumkumadi Serum</h1>
+                                        <h1 className="text-4xl md:text-5xl font-black text-secondary dark:text-primary leading-tight"><LiveEditable collection="products_content" docId="kumkumadiserum" field="name">Kumkumadi Serum</LiveEditable></h1>
                                         <p className="text-xl font-display italic text-slate-600 dark:text-slate-400">Radiant Beauty from Ancient Wisdom</p>
                                     </div>
                                     <div className="flex items-center gap-4">

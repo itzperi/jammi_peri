@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import LiveEditable from '../../components/admin/LiveEditable';
 
 const Yummunity: React.FC = () => {
     const [quantity, setQuantity] = useState(1);
@@ -52,10 +53,8 @@ const Yummunity: React.FC = () => {
                         </nav>
 
                         <div className="space-y-2">
-                            <h1 className="text-4xl lg:text-5xl font-bold font-serif text-[#2E5339] leading-tight flex flex-col">
-                                <span>Yummunity Kids</span>
-                                <span>Immunity Booster</span>
-                            </h1>
+                            <h1 className="text-4xl lg:text-5xl font-bold font-serif text-[#2E5339] leading-tight flex flex-col"><LiveEditable collection="products_content" docId="yummunity" field="name"><span>Yummunity Kids</span>
+                                <span>Immunity Booster</span></LiveEditable></h1>
                             <p className="text-xl text-gray-600 font-light">The tastiest way to boost your child’s health</p>
                         </div>
 

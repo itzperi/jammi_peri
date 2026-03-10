@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect } from 'react';
+import LiveEditable from '../../components/admin/LiveEditable';
 
 const TimelessAntiAgeing: React.FC = () => {
     useEffect(() => {
@@ -50,7 +51,7 @@ const TimelessAntiAgeing: React.FC = () => {
                                         <span>/</span>
                                         <span className="text-[#2E5339] font-bold">Anti-Ageing</span>
                                     </div>
-                                    <h1 className="text-4xl md:text-6xl font-black text-[#2E5339] dark:text-slate-100 leading-tight">Timeless Anti-Ageing Cream</h1>
+                                    <h1 className="text-4xl md:text-6xl font-black text-[#2E5339] dark:text-slate-100 leading-tight"><LiveEditable collection="products_content" docId="timelessantiageing" field="name">Timeless Anti-Ageing Cream</LiveEditable></h1>
                                     <p className="text-lg text-slate-600 dark:text-slate-400 leading-relaxed max-w-xl">
                                         A restorative Ayurvedic formula crafted with pure Guggul and Ashwagandha. Experience a visible transformation as it targets fine lines and restores your skin's youthful radiance.
                                     </p>

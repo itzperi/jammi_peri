@@ -1,5 +1,6 @@
 "use client";
 import React from 'react';
+import LiveEditable from '../../components/admin/LiveEditable';
 
 const CrushNBrush = () => {
     return (
@@ -66,7 +67,7 @@ const CrushNBrush = () => {
                             <div className="mb-2">
                                 <span className="text-primary text-sm font-bold tracking-widest uppercase">Oral Care / Wellness</span>
                             </div>
-                            <h1 className="text-4xl lg:text-5xl font-black text-slate-900 dark:text-slate-100 mb-4 leading-tight">Crush N' Brush Ayurvedic Pellets</h1>
+                            <h1 className="text-4xl lg:text-5xl font-black text-slate-900 dark:text-slate-100 mb-4 leading-tight"><LiveEditable collection="products_content" docId="crushnbrush" field="name">Crush N' Brush Ayurvedic Pellets</LiveEditable></h1>
                             <p className="text-lg text-slate-600 dark:text-slate-400 mb-6 font-medium leading-relaxed">Sustainable Oral Care | Ancient Wisdom meets Modern Convenience. Experience a plastic-free smile crafted from centuries-old Ayurvedic botanicals.</p>
 
                             <div className="flex items-center gap-4 mb-8">

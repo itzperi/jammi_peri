@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import LiveEditable from '../../components/admin/LiveEditable';
 
 const TriphalaChurna: React.FC = () => {
     const [activeTab, setActiveTab] = useState('description');
@@ -103,7 +104,7 @@ const TriphalaChurna: React.FC = () => {
                             <span className="bg-yellow-100 text-yellow-800 text-[10px] px-3 py-1 rounded-full font-bold tracking-wider uppercase">AYUSH Certified</span>
                         </div>
 
-                        <h1 className="font-['Playfair_Display',_serif] text-4xl text-[#1A2E20] mb-2 font-bold">Triphala Churna</h1>
+                        <h1 className="font-['Playfair_Display',_serif] text-4xl text-[#1A2E20] mb-2 font-bold"><LiveEditable collection="products_content" docId="triphalachurna" field="name">Triphala Churna</LiveEditable></h1>
                         <p className="italic text-[#2E5339] text-lg mb-4">Ayurvedic Detoxifier & Rejuvenator</p>
 
                         <div className="flex items-center space-x-3 mb-6">

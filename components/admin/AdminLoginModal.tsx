@@ -21,7 +21,7 @@ const AdminLoginModal: React.FC<AdminLoginModalProps> = ({ isOpen, onClose }) =>
       localStorage.setItem("jammi_admin_session", "true");
       onClose();
       // Use window.location.href to force a full reload so AdminPanelFloatingLink mounts cleanly
-      window.location.href = '/founders';
+      window.location.reload();
     } else {
       setError(true);
       setTimeout(() => setError(false), 3000);
