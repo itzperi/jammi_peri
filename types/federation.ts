@@ -28,7 +28,9 @@ export interface PartnerRequest {
     clinicName: string;
     name: string;
     email: string;
+    phone: string;
     location: string;
+    patientVolume: string;
     status: 'pending' | 'verified' | 'rejected';
     timestamp: string;
 }
