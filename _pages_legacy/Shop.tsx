@@ -8,12 +8,13 @@ import LiveEditable from '../components/admin/LiveEditable';
 const Shop: React.FC = () => {
   const [activeCategory, setActiveCategory] = useState('All');
   const [categories, setCategories] = useState(['All', 'Skin Care', 'Hair Care', 'Wellness', 'Therapeutics', 'Body Care', 'Oral Care & Wellness', 'Digestive Health', 'Immunity', 'Pain Relief']);
-  const [products, setProducts] = useState<any[]>([]); // Initialize with empty array, MOCK_PRODUCTS is no longer used directly
-  const [isLoading, setIsLoading] = useState(true);
+  const [products, setProducts] = useState<any[]>(MOCK_PRODUCTS); // Initialize with mock products for instant loading
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    window.scrollTo(0, 0);
-    setIsLoading(true);
+    // window.scrollTo(0, 0); // Can safely be removed or left, but initialization is synchronous
+    // setIsLoading(true); // Don't block UI with loading state since we have mock data
+
 
     let currentProducts: any[] = [];
     let currentCategories: any[] = [];
