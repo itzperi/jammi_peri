@@ -34,6 +34,7 @@ export default function ProductTemplate({ productId }: { productId: string }) {
     const [reviewName, setReviewName] = useState('');
     const [reviewRating, setReviewRating] = useState(5);
     const [reviewComment, setReviewComment] = useState('');
+    const [reviewImage, setReviewImage] = useState<File | null>(null);
     const [isSubmittingReview, setIsSubmittingReview] = useState(false);
     const [reviewSuccess, setReviewSuccess] = useState(false);
 
@@ -90,17 +91,32 @@ export default function ProductTemplate({ productId }: { productId: string }) {
         if (!product) return;
         setIsSubmittingReview(true);
         try {
+            let imageUrl = '';
+            if (reviewImage) {
+                const formData = new FormData();
+                formData.append('file', reviewImage);
+                const res = await fetch('/api/admin/products/upload-image', {
+                    method: 'POST',
+                    body: formData
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    imageUrl = data.imageUrl;
+                }
+            }
+
             await createDocument('reviews', {
                 productId: product.id,
                 productName: product.name,
                 customerName: reviewName,
                 rating: reviewRating,
                 comment: reviewComment,
+                imageUrl: imageUrl,
                 status: 'Pending',
                 createdAt: new Date().toISOString()
             });
             setReviewSuccess(true);
-            setReviewName(''); setReviewRating(5); setReviewComment('');
+            setReviewName(''); setReviewRating(5); setReviewComment(''); setReviewImage(null);
         } catch (err) {
             console.error(err);
             alert("Failed to submit review.");
@@ -304,6 +320,19 @@ export default function ProductTemplate({ productId }: { productId: string }) {
                                         <label className="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">Your Review</label>
                                         <textarea value={reviewComment} onChange={e => setReviewComment(e.target.value)} required rows={4} className="w-full border border-slate-300 rounded-lg px-4 py-2 focus:outline-none focus:border-primary resize-none" placeholder="How did this product help you?" />
                                     </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">Add an Image (Optional)</label>
+                                        <input 
+                                            type="file" 
+                                            accept="image/*"
+                                            onChange={e => {
+                                                if (e.target.files && e.target.files[0]) {
+                                                    setReviewImage(e.target.files[0]);
+                                                }
+                                            }}
+                                            className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 transition-colors"
+                                        />
+                                    </div>
                                     <button type="submit" disabled={isSubmittingReview} className="w-full bg-secondary text-white font-bold py-3 rounded-xl hover:bg-slate-800 transition-colors disabled:opacity-50">
                                         {isSubmittingReview ? 'Submitting...' : 'Submit Review'}
                                     </button>
@@ -334,7 +363,12 @@ export default function ProductTemplate({ productId }: { productId: string }) {
                                                 ))}
                                             </div>
                                         </div>
-                                        <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">{review.comment}</p>
+                                        <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed mb-4">{review.comment}</p>
+                                        {review.imageUrl && (
+                                            <div className="mt-3">
+                                                <img src={review.imageUrl} alt="Review Image" className="max-h-48 rounded-xl object-contain bg-slate-100 border border-slate-200" />
+                                            </div>
+                                        )}
                                     </div>
                                 ))
                             )}

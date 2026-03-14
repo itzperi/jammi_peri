@@ -1,13 +1,32 @@
 "use client";
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useFederationStore } from '../store/federationStore';
 
 const Partners: React.FC = () => {
     const [formStatus, setFormStatus] = useState<'idle' | 'submitted'>('idle');
     const [activeFaq, setActiveFaq] = useState<number | null>(null);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const { submitPartnerRequest } = useFederationStore();
+    const [partnerForm, setPartnerForm] = useState({
+        name: '',
+        clinicName: '',
+        email: '',
+        phone: '',
+        location: '',
+        patientVolume: ''
+    });
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        await submitPartnerRequest({
+            name: partnerForm.name,
+            clinicName: partnerForm.clinicName,
+            email: partnerForm.email,
+            phone: partnerForm.phone,
+            location: partnerForm.location,
+            patientVolume: partnerForm.patientVolume
+        });
         setFormStatus('submitted');
     };
 
@@ -226,7 +245,13 @@ const Partners: React.FC = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                                     <div className="space-y-2">
                                         <label className="text-xs font-bold text-secondary uppercase tracking-widest">Full Name *</label>
-                                        <input required type="text" className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all shadow-sm" />
+                                        <input 
+                                            required 
+                                            type="text" 
+                                            value={partnerForm.name}
+                                            onChange={(e) => setPartnerForm({...partnerForm, name: e.target.value})}
+                                            className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all shadow-sm" 
+                                        />
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-xs font-bold text-secondary uppercase tracking-widest">Qualification *</label>
@@ -249,31 +274,59 @@ const Partners: React.FC = () => {
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-xs font-bold text-secondary uppercase tracking-widest">Phone Number *</label>
-                                        <input required type="tel" className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all shadow-sm" />
+                                        <input 
+                                            required 
+                                            type="tel" 
+                                            value={partnerForm.phone}
+                                            onChange={(e) => setPartnerForm({...partnerForm, phone: e.target.value})}
+                                            className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all shadow-sm" 
+                                        />
                                     </div>
                                 </div>
 
                                 <div className="space-y-2 mb-6">
                                     <label className="text-xs font-bold text-secondary uppercase tracking-widest">Email *</label>
-                                    <input required type="email" className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all shadow-sm" />
+                                    <input 
+                                        required 
+                                        type="email" 
+                                        value={partnerForm.email}
+                                        onChange={(e) => setPartnerForm({...partnerForm, email: e.target.value})}
+                                        className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all shadow-sm" 
+                                    />
                                 </div>
 
                                 <div className="space-y-2 mb-6">
                                     <label className="text-xs font-bold text-secondary uppercase tracking-widest">Clinic Name & Address *</label>
-                                    <textarea required rows={3} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all resize-none shadow-sm"></textarea>
+                                    <textarea 
+                                        required 
+                                        rows={3} 
+                                        value={partnerForm.clinicName}
+                                        onChange={(e) => setPartnerForm({...partnerForm, clinicName: e.target.value})}
+                                        className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all resize-none shadow-sm"
+                                    ></textarea>
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                                     <div className="space-y-2">
                                         <label className="text-xs font-bold text-secondary uppercase tracking-widest">City / State *</label>
-                                        <input required type="text" className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all shadow-sm" />
+                                        <input 
+                                            required 
+                                            type="text" 
+                                            value={partnerForm.location}
+                                            onChange={(e) => setPartnerForm({...partnerForm, location: e.target.value})}
+                                            className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all shadow-sm" 
+                                        />
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-xs font-bold text-secondary uppercase tracking-widest text-slate-500">Patient Volume <span className="text-[10px] lowercase normal-case">(Optional)</span></label>
                                         <div className="relative">
-                                            <select className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all appearance-none cursor-pointer shadow-sm">
+                                            <select 
+                                                value={partnerForm.patientVolume}
+                                                onChange={(e) => setPartnerForm({...partnerForm, patientVolume: e.target.value})}
+                                                className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all appearance-none cursor-pointer shadow-sm"
+                                            >
                                                 <option value="">Monthly Patients</option>
-                                                <option value="0-50">0 - 50</option>
+                                                <option value="0-50">0 - 500</option>
                                                 <option value="50-200">50 - 200</option>
                                                 <option value="200+">200+</option>
                                             </select>

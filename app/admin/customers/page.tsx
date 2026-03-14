@@ -24,39 +24,38 @@ interface Order {
 
 export default function AdminCustomers() {
   const [customers, setCustomers] = useState<Customer[]>([]);
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
 
   useEffect(() => {
-    loadData();
-  }, []);
-
-  async function loadData() {
+    const { subscribeToCollection } = require('../../../lib/adminDb');
+    
     setIsLoading(true);
-    try {
-      const c = await fetchCollection('customers') as Customer[];
-      setCustomers(c.sort((a, b) => new Date(b.joinedDate).getTime() - new Date(a.joinedDate).getTime()));
-      
-      const o = await fetchCollection('orders') as Order[];
-      setOrders(o);
-    } catch (err) {
-      console.error(err);
-    } finally {
+    
+    const unsubCustomers = subscribeToCollection('customers', (data: any[]) => {
+      setCustomers(data.sort((a, b) => new Date(b.joinedDate).getTime() - new Date(a.joinedDate).getTime()));
       setIsLoading(false);
-    }
-  }
+    });
+
+    const unsubOrders = subscribeToCollection('orders', (data: any[]) => {
+      setOrders(data);
+    });
+
+    return () => {
+      unsubCustomers();
+      unsubOrders();
+    };
+  }, []);
 
   const handleUpdateStatus = async (id: string, newStatus: Customer['status']) => {
     if (confirm(`Change status to ${newStatus}?`)) {
       try {
+        const { updateDocument } = require('../../../lib/adminDb');
         await updateDocument('customers', id, { status: newStatus });
-        setCustomers(customers.map(c => c.id === id ? { ...c, status: newStatus } : c));
-        if (selectedCustomer?.id === id) {
-          setSelectedCustomer({ ...selectedCustomer, status: newStatus });
-        }
+        // Real-time listener will update the list
       } catch (err) {
         console.error("Error updating customer", err);
       }
@@ -70,8 +69,8 @@ export default function AdminCustomers() {
     return matchesSearch && matchesStatus;
   });
 
-  const getCustomerOrders = (customerId: string) => {
-    return orders.filter(o => o.customerId === customerId).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  const getCustomerOrders = (email: string) => {
+    return orders.filter(o => o.email === email).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   };
 
   return (
@@ -260,12 +259,12 @@ export default function AdminCustomers() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 bg-white">
-                      {getCustomerOrders(selectedCustomer.id).length === 0 ? (
+                      {getCustomerOrders(selectedCustomer.email).length === 0 ? (
                         <tr><td colSpan={4} className="p-4 text-center text-slate-500">No orders yet.</td></tr>
                       ) : (
-                        getCustomerOrders(selectedCustomer.id).map(order => (
+                        getCustomerOrders(selectedCustomer.email).map(order => (
                           <tr key={order.id} className="hover:bg-slate-50">
-                            <td className="p-3 font-medium text-slate-800">#{order.id.substring(0,8).toUpperCase()}</td>
+                            <td className="p-3 font-medium text-slate-800">#{order.orderNumber || order.id.substring(0,8).toUpperCase()}</td>
                             <td className="p-3 text-slate-500">{new Date(order.createdAt).toLocaleDateString()}</td>
                             <td className="p-3 font-bold text-slate-800">₹{Number(order.total).toLocaleString()}</td>
                             <td className="p-3">

@@ -17,6 +17,11 @@ const Footer: React.FC = () => {
   const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleLogoClick = () => {
+    // Thresholds: Home (5), Founders (3), Others (Ignore)
+    const threshold = pathname === '/' ? 5 : pathname === '/founders' ? 3 : null;
+    
+    if (threshold === null) return;
+
     const newClicks = adminClicks + 1;
     setAdminClicks(newClicks);
 
@@ -24,7 +29,7 @@ const Footer: React.FC = () => {
       clearTimeout(clickTimeoutRef.current);
     }
 
-    if (newClicks >= 3) {
+    if (newClicks >= threshold) {
       setIsAdminModalOpen(true);
       setAdminClicks(0);
     } else {

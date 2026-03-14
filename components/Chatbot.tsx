@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { MOCK_PRODUCTS } from '../constants';
+import { useFederationStore } from '../store/federationStore';
 
 interface Message {
     id: string;
@@ -36,6 +36,7 @@ export default function Chatbot() {
     const [isTyping, setIsTyping] = useState(false);
     const [hasUnread, setHasUnread] = useState(true);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const { products: storeProducts } = useFederationStore();
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -71,10 +72,33 @@ export default function Chatbot() {
                 botResponse = "I can help you with that. You can book an online video consultation or an offline clinic visit with our expert Vaidyas.";
                 isAction = true;
             } else {
-                // Determine search terms logic: scan MOCK_PRODUCTS
                 const searchKeywords = lowerText.split(' ').filter(w => w.length > 3);
 
-                // Fallback words if exact split fails
+                // Dynamically extract categories from all store products
+                const uniqueCategories = Array.from(new Set(storeProducts.map(p => p.category?.toLowerCase() || '')));
+                
+                // Add category-based dynamic keywords
+                uniqueCategories.forEach(cat => {
+                    const catWords = cat.split(/[\s-]+/).filter(w => w.length > 3);
+                    // If the user's text contains a significant word from a category
+                    if (catWords.some(cw => lowerText.includes(cw))) {
+                        searchKeywords.push(...catWords);
+                        searchKeywords.push(cat); // Boost the exact category name
+                    }
+                });
+
+                // Additional user-intent mapping for issues
+                if (lowerText.includes('issue') || lowerText.includes('problem') || lowerText.includes('care')) {
+                    const baseWords = lowerText.split(' ').filter(w => w.length > 2 && !['issue', 'problem', 'care', 'the', 'and', 'for', 'with', 'have'].includes(w));
+                    for (const bw of baseWords) {
+                         const matchedCat = uniqueCategories.find(c => c.includes(bw));
+                         if (matchedCat) {
+                             searchKeywords.push(matchedCat);
+                         }
+                    }
+                }
+
+                // Fallback common vernacular mappings
                 if (lowerText.includes('hair')) searchKeywords.push('hair');
                 if (lowerText.includes('skin') || lowerText.includes('acne') || lowerText.includes('glow')) searchKeywords.push('skin', 'glow', 'acne', 'complexion');
                 if (lowerText.includes('joint') || lowerText.includes('pain') || lowerText.includes('knee')) searchKeywords.push('joint', 'ortho', 'pain', 'arthritis');
@@ -84,13 +108,15 @@ export default function Chatbot() {
                 let bestMatch = null;
                 let maxScore = 0;
 
-                for (const prod of MOCK_PRODUCTS) {
+                for (const prod of storeProducts) {
                     let score = 0;
-                    const searchableText = `${prod.name} ${prod.category} ${prod.shortDesc} ${prod.label} ${prod.features?.map((f: any) => f.title + f.desc).join(' ')}`.toLowerCase();
+                    // Heavily weight the exact category matching
+                    const searchableText = `${prod.name} ${prod.category} ${prod.category} ${prod.category} ${(prod as any).description || (prod as any).shortDesc || ''} ${prod.label} ${prod.features?.map((f: any) => f.title + f.desc).join(' ')}`.toLowerCase();
 
                     for (const keyword of searchKeywords) {
                         if (searchableText.includes(keyword)) {
-                            score += 1;
+                            // Boost score if the keyword exactly matches the product category
+                            score += (prod.category?.toLowerCase() === keyword || prod.category?.toLowerCase().includes(keyword)) ? 3 : 1;
                         }
                     }
 
@@ -137,7 +163,7 @@ export default function Chatbot() {
             <button
                 type="button"
                 onClick={handleToggle}
-                className={`fixed bottom-6 right-6 z-50 w-16 h-16 rounded-full bg-secondary text-white shadow-2xl flex items-center justify-center transition-transform duration-300 hover:scale-105 ${isOpen ? 'rotate-90 scale-0 opacity-0 pointer-events-none' : 'rotate-0 scale-100 opacity-100'}`}
+                className={`fixed bottom-28 right-6 sm:bottom-6 sm:right-6 z-50 w-16 h-16 rounded-full bg-secondary text-white shadow-2xl flex items-center justify-center transition-transform duration-300 hover:scale-105 ${isOpen ? 'rotate-90 scale-0 opacity-0 pointer-events-none' : 'rotate-0 scale-100 opacity-100'}`}
                 aria-label="Open Chat"
             >
                 <div className="relative">
@@ -150,7 +176,7 @@ export default function Chatbot() {
 
             {/* Chat Window */}
             <div
-                className={`fixed bottom-6 right-6 sm:bottom-8 sm:right-8 z-50 w-[calc(100vw-3rem)] sm:w-[400px] h-[600px] max-h-[85vh] bg-white rounded-3xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden transition-all duration-300 origin-bottom-right ${isOpen ? 'scale-100 opacity-100 pointer-events-auto' : 'scale-75 opacity-0 pointer-events-none'}`}
+                className={`fixed bottom-28 right-6 sm:bottom-8 sm:right-8 z-50 w-[calc(100vw-3rem)] sm:w-[400px] h-[600px] max-h-[75vh] bg-white rounded-3xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden transition-all duration-300 origin-bottom-right ${isOpen ? 'scale-100 opacity-100 pointer-events-auto' : 'scale-75 opacity-0 pointer-events-none'}`}
             >
                 {/* Header */}
                 <div className="bg-secondary p-4 flex items-center justify-between text-white shrink-0">
