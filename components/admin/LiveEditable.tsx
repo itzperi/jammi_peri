@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { useAdmin } from './AdminContext';
 import { updateDocument } from '../../lib/adminDb';
 
@@ -21,9 +22,12 @@ const LiveEditable: React.FC<LiveEditableProps> = ({
   className = "" 
 }) => {
   const { isAdmin, isEditMode } = useAdmin();
+  const pathname = usePathname();
   const [value, setValue] = useState<string>('');
   const [isSaving, setIsSaving] = useState(false);
   const [showEditor, setShowEditor] = useState(false);
+
+  const isRestrictedPage = pathname === '/founders';
 
   useEffect(() => {
     const extractText = (node: any): string => {
@@ -40,7 +44,7 @@ const LiveEditable: React.FC<LiveEditableProps> = ({
     }
   }, [children]);
 
-  if (!isAdmin || !isEditMode) {
+  if (!isAdmin || !isEditMode || isRestrictedPage) {
     return <span className={className}>{children}</span>;
   }
 

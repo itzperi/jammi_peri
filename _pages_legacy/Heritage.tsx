@@ -27,7 +27,7 @@ const Heritage: React.FC = () => {
         <div className="absolute inset-0 bg-gradient-to-t from-background-light via-background-light/60 to-transparent"></div>
         <div className="relative z-10 text-center px-4 max-w-4xl">
           <p className="text-primary font-bold tracking-widest uppercase text-sm mb-4">Est. 1890</p>
-          <h1 className="font-display text-6xl md:text-8xl text-secondary leading-tight mb-6 font-extrabold text-white">
+          <h1 className="font-display text-6xl md:text-8xl text-black leading-tight mb-6 font-extrabold">
             <LiveEditable collection="site_content" docId="heritage" field="heroHeadline">{heroHeadline}</LiveEditable>
           </h1>
           <p className="text-lg md:text-xl text-slate-100 max-w-3xl mx-auto leading-relaxed">

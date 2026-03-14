@@ -12,6 +12,7 @@ interface OrderItem {
 
 interface Order {
   id: string;
+  orderNumber?: string;
   customerName: string;
   email: string;
   phone: string;
@@ -23,6 +24,7 @@ interface Order {
   items: OrderItem[];
   trackingNumber?: string;
   courierName?: string;
+  paymentMethod?: string;
 }
 
 export default function AdminOrders() {
@@ -81,6 +83,25 @@ export default function AdminOrders() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-3xl font-bold text-slate-800 tracking-tight">Order Management</h1>
+        <div className="flex gap-3">
+          <input 
+            type="file" 
+            id="import-orders" 
+            className="hidden" 
+            accept=".json,.csv"
+            onChange={(e) => {
+              // TODO: Implement import logic
+              alert("Import logic to be implemented. Please upload a valid JSON file representing orders.");
+            }}
+          />
+          <button 
+            onClick={() => document.getElementById('import-orders')?.click()}
+            className="bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-lg font-bold hover:bg-slate-50 transition-all flex items-center gap-2"
+          >
+            <span className="material-symbols-outlined text-[20px]">upload_file</span>
+            Import Orders
+          </button>
+        </div>
       </div>
 
       <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col sm:flex-row gap-4">
@@ -147,7 +168,7 @@ export default function AdminOrders() {
                     className="hover:bg-slate-50 transition-colors cursor-pointer group"
                     onClick={() => handleOpenDetail(order)}
                   >
-                    <td className="p-4 font-medium text-slate-900 group-hover:text-forest transition-colors">#{order.id.substring(0,8).toUpperCase()}</td>
+                    <td className="p-4 font-medium text-slate-900 group-hover:text-forest transition-colors">#{order.orderNumber || order.id.substring(0,8).toUpperCase()}</td>
                     <td className="p-4">{order.customerName}</td>
                     <td className="p-4 text-slate-500">{new Date(order.createdAt).toLocaleDateString()}</td>
                     <td className="p-4">{order.items?.length || 0} items</td>
@@ -186,7 +207,7 @@ export default function AdminOrders() {
           <div className="relative z-10 w-full max-w-3xl bg-white rounded-xl shadow-2xl flex flex-col max-h-[90vh]">
             <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50 rounded-t-xl">
               <div>
-                <h2 className="text-xl font-bold text-slate-800">Order #{selectedOrder.id.substring(0,8).toUpperCase()}</h2>
+                <h2 className="text-xl font-bold text-slate-800">Order #{selectedOrder.orderNumber || selectedOrder.id.substring(0,8).toUpperCase()}</h2>
                 <p className="text-sm text-slate-500 mt-1">{new Date(selectedOrder.createdAt).toLocaleString()}</p>
               </div>
               <button 
@@ -205,6 +226,19 @@ export default function AdminOrders() {
                     <p><span className="font-medium text-slate-800">Name:</span> {selectedOrder.customerName}</p>
                     <p><span className="font-medium text-slate-800">Email:</span> {selectedOrder.email}</p>
                     <p><span className="font-medium text-slate-800">Phone:</span> {selectedOrder.phone}</p>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <h3 className="font-bold text-slate-800 text-sm uppercase tracking-wider border-b border-slate-100 pb-2">Payment Info</h3>
+                  <div className="text-sm text-slate-600 space-y-1">
+                    <p><span className="font-medium text-slate-800">Method:</span> {selectedOrder.paymentMethod || 'Not specified'}</p>
+                    <p><span className="font-medium text-slate-800">Status:</span> 
+                      <span className={`ml-2 px-2 py-0.5 text-[10px] uppercase font-bold rounded ${
+                        selectedOrder.paymentStatus === 'Paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {selectedOrder.paymentStatus}
+                      </span>
+                    </p>
                   </div>
                 </div>
                 <div className="space-y-4">

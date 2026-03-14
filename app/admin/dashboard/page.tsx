@@ -13,9 +13,11 @@ import {
 
 interface Order {
   id: string;
+  orderNumber?: string;
   customerName: string;
   total: number;
   status: string;
+  paymentStatus?: string;
   createdAt: string;
 }
 
@@ -27,31 +29,36 @@ interface Product {
 
 export default function AdminDashboard() {
   const [orders, setOrders] = useState<Order[]>([]);
+  const [customerCount, setCustomerCount] = useState(0);
   const [lowStockProducts, setLowStockProducts] = useState<Product[]>([]);
   const [timeframe, setTimeframe] = useState<'weekly' | 'monthly'>('monthly');
 
   useEffect(() => {
     const unsubOrders = subscribeToCollection('orders', (data) => {
       const fetchedOrders = data as Order[];
-      // sort safe check
       setOrders(fetchedOrders.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()));
     });
     
     const unsubProducts = subscribeToCollection('products', (data) => {
       const fetchedProducts = data as Product[];
-      setLowStockProducts(fetchedProducts.filter(p => Number(p.stock) < 10)); // Convert to number just in case
+      setLowStockProducts(fetchedProducts.filter(p => Number(p.stock) < 10));
+    });
+
+    const unsubCustomers = subscribeToCollection('customers', (data) => {
+      setCustomerCount(data.length);
     });
 
     return () => {
       unsubOrders();
       unsubProducts();
+      unsubCustomers();
     };
   }, []);
 
-  const totalSales = orders.reduce((sum, order) => sum + Number(order.total || 0), 0);
-  const totalOrders = orders.length;
-  // Mock new customers for now
-  const newCustomers = 0; 
+  const paidOrders = orders.filter(o => o.paymentStatus === 'Paid');
+  const totalSales = paidOrders.reduce((sum, order) => sum + Number(order.total || 0), 0);
+  const totalOrdersCount = orders.length;
+  const newCustomers = customerCount; 
 
   // Generate real-time chart data from orders
   const generateChartData = () => {
@@ -64,7 +71,7 @@ export default function AdminDashboard() {
         monthlyData[months[i]] = 0;
     }
 
-    orders.forEach(order => {
+    paidOrders.forEach(order => {
         if (!order.createdAt) return;
         const date = new Date(order.createdAt);
         if (date.getFullYear() === new Date().getFullYear()) {
@@ -115,7 +122,7 @@ export default function AdminDashboard() {
             <span className="text-sm font-bold uppercase tracking-wider">Total Orders</span>
             <span className="material-symbols-outlined text-saffron">shopping_cart</span>
           </div>
-          <p className="text-3xl font-bold text-slate-900">{totalOrders}</p>
+          <p className="text-3xl font-bold text-slate-900">{totalOrdersCount}</p>
         </div>
 
         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col gap-2">
@@ -205,7 +212,7 @@ export default function AdminDashboard() {
               ) : (
                 orders.slice(0, 10).map((order) => (
                   <tr key={order.id} className="hover:bg-slate-50 transition-colors group">
-                    <td className="p-4 font-medium text-slate-900">#{order.id.substring(0, 8).toUpperCase()}</td>
+                    <td className="p-4 font-medium text-slate-900">#{order.orderNumber || order.id.substring(0, 8).toUpperCase()}</td>
                     <td className="p-4">{order.customerName}</td>
                     <td className="p-4 text-slate-500">{new Date(order.createdAt).toLocaleDateString()}</td>
                     <td className="p-4 font-medium text-slate-900">₹{Number(order.total).toLocaleString()}</td>

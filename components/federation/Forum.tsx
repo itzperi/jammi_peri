@@ -6,15 +6,26 @@ import clsx from 'clsx';
 import { ForumPost } from '../../types/federation';
 
 export default function Forum() {
-    const { posts, submitPost, upvotePost, isAdminLoggedIn, approvePost, rejectPost, submitComment } = useFederationStore();
+    const { 
+        posts, submitPost, upvotePost, isAdminLoggedIn, approvePost, rejectPost, submitComment,
+        notifications, markNotificationRead, createDoctorProfile, doctorProfiles,
+        currentUserProfile, userUID
+    } = useFederationStore();
     
     // Post Form States
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
-    const [author, setAuthor] = useState('');
-    const [specialty, setSpecialty] = useState('');
+    const [author, setAuthor] = useState(currentUserProfile?.name || '');
+    const [specialty, setSpecialty] = useState(currentUserProfile?.specialty || '');
     const [category, setCategory] = useState('Clinical Research');
     const [toast, setToast] = useState('');
+
+    useEffect(() => {
+        if (currentUserProfile) {
+            setAuthor(currentUserProfile.name);
+            setSpecialty(currentUserProfile.specialty);
+        }
+    }, [currentUserProfile]);
 
     // Expanded Post State
     const [expandedPostId, setExpandedPostId] = useState<string | null>(null);
@@ -22,6 +33,23 @@ export default function Forum() {
     // Comment Form State
     const [commentAuthor, setCommentAuthor] = useState('');
     const [commentContent, setCommentContent] = useState('');
+
+    // Doctor Profile State
+    const [showJoinModal, setShowJoinModal] = useState(false);
+    const [docName, setDocName] = useState('');
+    const [docSpecialty, setDocSpecialty] = useState('');
+    const [docBio, setDocBio] = useState('');
+
+    // Notifications State
+    const [showNotifications, setShowNotifications] = useState(true);
+
+    const handleDoctorJoin = async (e: React.FormEvent) => {
+        e.preventDefault();
+        await createDoctorProfile({ name: docName, specialty: docSpecialty, bio: docBio });
+        setShowJoinModal(false);
+        setToast('Profile created! You can now start posting.');
+        setTimeout(() => setToast(''), 3000);
+    };
 
     const { scrollYProgress } = useScroll();
     const backgroundColor = useTransform(
@@ -38,8 +66,8 @@ export default function Forum() {
         setContent('');
         setAuthor('');
         setSpecialty('');
-        setToast('Submitted for Council review');
-        setTimeout(() => setToast(''), 3000);
+        setToast('Your post is under review. When verified, it will be allowed to post.');
+        setTimeout(() => setToast(''), 5000);
     };
 
     const handleCommentSubmit = (e: React.FormEvent, postId: string) => {
@@ -55,14 +83,77 @@ export default function Forum() {
             className="w-full py-24 px-6 md:px-12 lg:px-24"
             style={{ backgroundColor }}
         >
-            <div className="max-w-7xl mx-auto mb-16">
-                <h2 className="text-4xl md:text-[64px] font-['Cormorant_SC',serif] text-[#C9A84C] mb-2 leading-none">
-                    THE DISCOURSE
-                </h2>
-                <p className="font-['Cinzel',serif] tracking-widest text-[#9E8E7E] text-sm md:text-base">
-                    PEER-REVIEWED FORUM · CURATED BY THE JAMMI ACADEMIC COUNCIL
-                </p>
+            <div className="max-w-7xl mx-auto mb-16 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+                <div>
+                    <h2 className="text-4xl md:text-[64px] font-['Cormorant_SC',serif] text-[#C9A84C] mb-2 leading-none">
+                        THE DISCOURSE
+                    </h2>
+                    <p className="font-['Cinzel',serif] tracking-widest text-[#9E8E7E] text-sm md:text-base">
+                        PEER-REVIEWED FORUM · CURATED BY THE JAMMI ACADEMIC COUNCIL
+                    </p>
+                </div>
+                <div className="flex items-center gap-4">
+                    {!currentUserProfile ? (
+                        <button 
+                            onClick={() => setShowJoinModal(true)}
+                            className="bg-[#C9A84C] text-white px-6 py-2 rounded-sm font-['Cinzel',serif] text-xs tracking-widest hover:brightness-110 transition-all shadow-lg shadow-[#C9A84C]/20"
+                        >
+                            JOIN AS A DOCTOR
+                        </button>
+                    ) : (
+                        <div className="flex items-center gap-3 bg-[#1C1411] text-white px-4 py-2 rounded-sm border border-[#C9A84C]/30">
+                            <span className="material-symbols-outlined text-[#C9A84C]">verified_user</span>
+                            <div className="flex flex-col">
+                                <span className="font-['Cinzel',serif] text-[10px] tracking-widest leading-none mb-1">PRACTITIONER</span>
+                                <span className="font-['Playfair_Display',serif] text-sm leading-none">{currentUserProfile.name}</span>
+                            </div>
+                        </div>
+                    )}
+                    <button 
+                        onClick={() => setShowNotifications(!showNotifications)}
+                        className="relative p-2 text-[#C9A84C] border border-[#C9A84C]/30 rounded-full hover:bg-[#C9A84C]/10 transition-all"
+                    >
+                        <span className="material-symbols-outlined">notifications</span>
+                        {notifications.filter(n => !n.isRead).length > 0 && (
+                            <span className="absolute top-0 right-0 size-2 bg-red-500 rounded-full"></span>
+                        )}
+                    </button>
+                </div>
             </div>
+
+            {/* Notifications Panel */}
+            <AnimatePresence>
+                {showNotifications && notifications.length > 0 && (
+                    <motion.div 
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="max-w-7xl mx-auto mb-12 bg-[#EDE5D8] border border-[#C9A84C]/30 overflow-hidden"
+                    >
+                        <div className="p-4 border-b border-[#C9A84C]/20 flex justify-between items-center">
+                            <h4 className="font-['Cinzel',serif] text-xs tracking-widest text-[#1C1411]">COMMUNITY UDPATES</h4>
+                            <button onClick={() => setShowNotifications(false)} className="text-[#9E8E7E] hover:text-[#1C1411]">✕</button>
+                        </div>
+                        <div className="max-h-48 overflow-y-auto divide-y divide-[#C9A84C]/10">
+                            {notifications.map(notif => (
+                                <div 
+                                    key={notif.id} 
+                                    className={clsx("p-4 flex justify-between items-center gap-4", !notif.isRead && "bg-white/30")}
+                                    onClick={() => markNotificationRead(notif.id)}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <span className="material-symbols-outlined text-[#C9A84C] text-sm">
+                                            {notif.type === 'new_post' ? 'article' : 'person_add'}
+                                        </span>
+                                        <p className="font-['EB_Garamond',serif] text-[#3a302a] text-sm">{notif.message}</p>
+                                    </div>
+                                    <span className="font-['DM_Mono',monospace] text-[10px] text-[#9E8E7E] uppercase">{new Date(notif.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-12">
                 {/* 65% Left Feed */}
@@ -311,6 +402,67 @@ export default function Forum() {
                     </div>
                 </div>
             </div>
+            {/* Doctor Join Modal */}
+            <AnimatePresence>
+                {showJoinModal && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-[#1C1411]/80 backdrop-blur-sm">
+                        <motion.div 
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            className="bg-[#FAF8F2] w-full max-w-lg border border-[#C9A84C] p-10 overflow-hidden relative"
+                        >
+                            <button 
+                                onClick={() => setShowJoinModal(false)}
+                                className="absolute top-6 right-6 text-[#9E8E7E] hover:text-[#1C1411]"
+                            >
+                                <span className="material-symbols-outlined">close</span>
+                            </button>
+
+                            <h3 className="text-3xl font-['Playfair_Display',serif] italic text-[#1C1411] mb-2">Create Doctor Profile</h3>
+                            <p className="font-['Cinzel',serif] text-[10px] tracking-widest text-[#C9A84C] mb-8">VERIFIED PRACTITIONER ACCESS</p>
+
+                            <form onSubmit={handleDoctorJoin} className="space-y-6">
+                                <div className="space-y-2">
+                                    <label className="font-['Cinzel',serif] text-[10px] tracking-widest text-[#9E8E7E]">FULL NAME & TITLES</label>
+                                    <input 
+                                        type="text" 
+                                        placeholder="Dr. Alexander Jammi"
+                                        value={docName}
+                                        onChange={e => setDocName(e.target.value)}
+                                        className="w-full bg-transparent border-b border-[#D4B896] pb-2 text-[#1C1411] font-['EB_Garamond',serif] text-lg focus:outline-none placeholder:text-[#9E8E7E]/40"
+                                        required
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="font-['Cinzel',serif] text-[10px] tracking-widest text-[#9E8E7E]">SPECIALIZATION</label>
+                                    <input 
+                                        type="text" 
+                                        placeholder="Ayurvedic Internal Medicine"
+                                        value={docSpecialty}
+                                        onChange={e => setDocSpecialty(e.target.value)}
+                                        className="w-full bg-transparent border-b border-[#D4B896] pb-2 text-[#1C1411] font-['EB_Garamond',serif] text-lg focus:outline-none placeholder:text-[#9E8E7E]/40"
+                                        required
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="font-['Cinzel',serif] text-[10px] tracking-widest text-[#9E8E7E]">PROFESSIONAL BIOGRAPHY</label>
+                                    <textarea 
+                                        placeholder="Brief summary of expertise..."
+                                        value={docBio}
+                                        onChange={e => setDocBio(e.target.value)}
+                                        className="w-full bg-transparent border border-[#D4B896]/50 p-3 text-[#1C1411] font-['EB_Garamond',serif] text-base focus:outline-none h-32 resize-none placeholder:text-[#9E8E7E]/40"
+                                        required
+                                    />
+                                </div>
+                                <button type="submit" className="w-full bg-[#1C1411] text-[#C9A84C] font-['Cinzel',serif] tracking-widest py-4 hover:bg-[#C9A84C] hover:text-white transition-all">
+                                    ESTABLISH CREDENTIALS
+                                </button>
+                            </form>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </motion.section>
     );
 }

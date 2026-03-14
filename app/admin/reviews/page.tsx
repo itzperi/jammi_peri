@@ -9,6 +9,7 @@ interface Review {
   customerName: string;
   rating: number;
   comment: string;
+  imageUrl?: string;
   status: 'Pending' | 'Approved' | 'Rejected';
   createdAt: string;
 }
@@ -143,6 +144,11 @@ export default function AdminReviews() {
                     <td className="p-4 max-w-sm">
                       <div className="mb-1">{renderStars(review.rating)}</div>
                       <p className="text-xs text-slate-600 line-clamp-2">{review.comment}</p>
+                      {review.imageUrl && (
+                         <a href={review.imageUrl} target="_blank" rel="noreferrer" className="text-forest hover:underline text-[11px] flex items-center gap-1 mt-2">
+                             <span className="material-symbols-outlined text-[14px]">image</span> View Image
+                         </a>
+                      )}
                     </td>
                     <td className="p-4 text-xs text-slate-500">{new Date(review.createdAt).toLocaleDateString()}</td>
                     <td className="p-4 text-center">

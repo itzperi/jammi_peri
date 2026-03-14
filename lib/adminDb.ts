@@ -100,3 +100,36 @@ export const deleteDocument = async (collectionName: string, id: string) => {
     await deleteDoc(docRef);
 };
 
+// Sequential Order ID Generator
+export const getNextOrderNumber = async () => {
+    if (!db) throw new Error("Database not initialized");
+    const { runTransaction, doc: firestoreDoc } = await import('firebase/firestore');
+    
+    try {
+        const counterRef = firestoreDoc(db, 'metadata', 'orders_counter');
+        
+        const newCount = await runTransaction(db, async (transaction) => {
+            const counterDoc = await transaction.get(counterRef);
+            let count = 1;
+            
+            if (counterDoc.exists()) {
+                count = (counterDoc.data()?.count || 0) + 1;
+            }
+            
+            transaction.set(counterRef, { count }, { merge: true });
+            return count;
+        });
+        
+        return `Jammi-${newCount}`;
+    } catch (e) {
+        console.error("Error generating order number:", e);
+        // Fallback to timestamp-based if transaction fails
+        return `Jammi-${Date.now().toString().slice(-6)}`;
+    }
+};
+
+export const runTransaction = async (updateFunction: (transaction: any) => Promise<any>) => {
+    if (!db) throw new Error("Database not initialized");
+    const { runTransaction: firestoreRunTransaction } = await import('firebase/firestore');
+    return await firestoreRunTransaction(db, updateFunction);
+};

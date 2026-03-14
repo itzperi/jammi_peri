@@ -19,6 +19,7 @@ const AdminLoginModal: React.FC<AdminLoginModalProps> = ({ isOpen, onClose }) =>
     e.preventDefault();
     if (username.trim() === 'JammiPharma' && password.trim() === 'Jammi@007') {
       localStorage.setItem("jammi_admin_session", "true");
+      localStorage.setItem("jammi_edit_mode", "true");
       onClose();
       // Use window.location.href to force a full reload so AdminPanelFloatingLink mounts cleanly
       window.location.reload();

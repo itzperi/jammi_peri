@@ -3,11 +3,19 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { subscribeToDocument } from '../lib/adminDb';
 import LiveEditable from '../components/admin/LiveEditable';
+import { useFederationStore } from '../store/federationStore';
+import { ForumPost } from '../types/federation';
 
 const Federation: React.FC = () => {
     const [formStatus, setFormStatus] = useState<'idle' | 'submitted'>('idle');
     const [activeFaq, setActiveFaq] = useState<number | null>(null);
     const [content, setContent] = useState<any>(null);
+
+    const { 
+        posts, submitPost, 
+        createDoctorProfile, currentUserProfile, 
+        notifications 
+    } = useFederationStore();
 
     useEffect(() => {
         const unsub = subscribeToDocument('site_content', 'federation', (data) => {
@@ -16,14 +24,54 @@ const Federation: React.FC = () => {
         return () => unsub();
     }, []);
 
+    const [profileData, setProfileData] = useState({
+        name: '',
+        specialty: '',
+        bio: '',
+        regNo: '',
+        phone: '',
+        email: '',
+        clinic: ''
+    });
+
+    const [newPost, setNewPost] = useState({
+        title: '',
+        content: '',
+        category: 'Case Study'
+    });
+
     const heroTitle = content?.heroTitle || "Stop Practising Alone.";
     const heroSubtext = content?.heroSubtext || "Join 128 years of Ayurveda credibility. Get patients, products, and a brand that works for you — while you stay independent.";
     const movementTitle = content?.movementTitle || "The Jammi Ayurveda Movement";
     const movementText = content?.movementText || "JAM is a cooperative federation of India's finest independent traditional healers. We provide the 128-year credibility, the pan-India patient network, and the clinical formulary. You provide the healing. Together, we reclaim the narrative of genuine Ayurveda.";
 
-    const handleApply = (e: React.FormEvent) => {
+    const handleApply = async (e: React.FormEvent) => {
         e.preventDefault();
+        await createDoctorProfile({
+            name: profileData.name,
+            specialty: profileData.specialty,
+            bio: `${profileData.bio} | Registry: ${profileData.regNo} | Clinic: ${profileData.clinic}`
+        });
         setFormStatus('submitted');
+    };
+
+    const handlePostSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!currentUserProfile || !currentUserProfile.verified) {
+            alert("Only verified doctors can post to the community.");
+            return;
+        }
+        
+        await submitPost({
+            author: currentUserProfile.name,
+            specialty: currentUserProfile.specialty,
+            category: newPost.category,
+            title: newPost.title,
+            content: newPost.content,
+            doctorId: currentUserProfile.id
+        });
+        setNewPost({ title: '', content: '', category: 'Case Study' });
+        alert("Your post is under review. When verified, it will be allowed to post.");
     };
 
     const faqs = [
@@ -51,6 +99,26 @@ const Federation: React.FC = () => {
 
     return (
         <div className="bg-background-light pt-[5rem]">
+            {/* Notification Ticker */}
+            {notifications.length > 0 && (
+                <div className="bg-white border-b border-cream-dark py-2 overflow-hidden whitespace-nowrap relative z-20">
+                    <div className="flex animate-marquee items-center gap-12">
+                        {notifications.map((notif) => (
+                            <div key={notif.id} className="flex items-center gap-2 px-4 border-r border-slate-100 last:border-0">
+                                <span className="size-2 bg-saffron rounded-full animate-pulse"></span>
+                                <span className="text-[10px] font-bold text-forest uppercase tracking-widest">{notif.message}</span>
+                            </div>
+                        ))}
+                        {/* Duplicate for infinite loop */}
+                        {notifications.map((notif) => (
+                            <div key={`dup-${notif.id}`} className="flex items-center gap-2 px-4 border-r border-slate-100 last:border-0">
+                                <span className="size-2 bg-saffron rounded-full animate-pulse"></span>
+                                <span className="text-[10px] font-bold text-forest uppercase tracking-widest">{notif.message}</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             {/* SECTION 1: Hero */}
             <section className="bg-forest relative overflow-hidden text-center py-24 lg:py-32">
@@ -350,28 +418,82 @@ const Federation: React.FC = () => {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                                 <div className="space-y-2">
                                     <label className="text-xs font-bold text-forest uppercase tracking-widest">Full Name / Dr. *</label>
-                                    <input required type="text" className="w-full border-b-2 border-cream-dark py-3 outline-none focus:border-saffron bg-transparent transition-colors" />
+                                    <input 
+                                        required 
+                                        type="text" 
+                                        value={profileData.name}
+                                        onChange={(e) => setProfileData({...profileData, name: e.target.value})}
+                                        className="w-full border-b-2 border-cream-dark py-3 outline-none focus:border-saffron bg-transparent transition-colors" 
+                                    />
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-xs font-bold text-forest uppercase tracking-widest">Medical Registration No. *</label>
-                                    <input required type="text" className="w-full border-b-2 border-cream-dark py-3 outline-none focus:border-saffron bg-transparent transition-colors" />
+                                    <input 
+                                        required 
+                                        type="text" 
+                                        value={profileData.regNo}
+                                        onChange={(e) => setProfileData({...profileData, regNo: e.target.value})}
+                                        className="w-full border-b-2 border-cream-dark py-3 outline-none focus:border-saffron bg-transparent transition-colors" 
+                                    />
                                 </div>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                                 <div className="space-y-2">
                                     <label className="text-xs font-bold text-forest uppercase tracking-widest">Phone Number *</label>
-                                    <input required type="tel" className="w-full border-b-2 border-cream-dark py-3 outline-none focus:border-saffron bg-transparent transition-colors" />
+                                    <input 
+                                        required 
+                                        type="tel" 
+                                        value={profileData.phone}
+                                        onChange={(e) => setProfileData({...profileData, phone: e.target.value})}
+                                        className="w-full border-b-2 border-cream-dark py-3 outline-none focus:border-saffron bg-transparent transition-colors" 
+                                    />
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-xs font-bold text-forest uppercase tracking-widest">Email Address *</label>
-                                    <input required type="email" className="w-full border-b-2 border-cream-dark py-3 outline-none focus:border-saffron bg-transparent transition-colors" />
+                                    <input 
+                                        required 
+                                        type="email" 
+                                        value={profileData.email}
+                                        onChange={(e) => setProfileData({...profileData, email: e.target.value})}
+                                        className="w-full border-b-2 border-cream-dark py-3 outline-none focus:border-saffron bg-transparent transition-colors" 
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-forest uppercase tracking-widest">Clinic Name & City *</label>
+                                    <input 
+                                        required 
+                                        type="text" 
+                                        value={profileData.clinic}
+                                        onChange={(e) => setProfileData({...profileData, clinic: e.target.value})}
+                                        className="w-full border-b-2 border-cream-dark py-3 outline-none focus:border-saffron bg-transparent transition-colors" 
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-forest uppercase tracking-widest">Specialty *</label>
+                                    <input 
+                                        required 
+                                        type="text" 
+                                        value={profileData.specialty}
+                                        onChange={(e) => setProfileData({...profileData, specialty: e.target.value})}
+                                        placeholder="e.g. Kaumarbhritya"
+                                        className="w-full border-b-2 border-cream-dark py-3 outline-none focus:border-saffron bg-transparent transition-colors" 
+                                    />
                                 </div>
                             </div>
 
                             <div className="space-y-2 mb-8">
-                                <label className="text-xs font-bold text-forest uppercase tracking-widest">Clinic Name & City *</label>
-                                <input required type="text" className="w-full border-b-2 border-cream-dark py-3 outline-none focus:border-saffron bg-transparent transition-colors" />
+                                <label className="text-xs font-bold text-forest uppercase tracking-widest">Professional Bio *</label>
+                                <textarea 
+                                    required 
+                                    rows={3}
+                                    value={profileData.bio}
+                                    onChange={(e) => setProfileData({...profileData, bio: e.target.value})}
+                                    className="w-full border-b-2 border-cream-dark py-3 outline-none focus:border-saffron bg-transparent transition-colors resize-none" 
+                                />
                             </div>
 
                             <div className="text-center">
@@ -398,7 +520,158 @@ const Federation: React.FC = () => {
                 </div>
             </section>
 
-            {/* SECTION 9: FAQ */}
+            {/* NEW SECTION: Community Discourse & Posting */}
+            <section className="py-24 bg-forest text-white relative overflow-hidden border-t border-white/10">
+                <div className="max-w-7xl mx-auto px-6 lg:px-10 relative z-10">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-16">
+                        {/* Sidebar: Profile & Actions */}
+                        <div className="lg:col-span-1 space-y-10">
+                            {currentUserProfile ? (
+                                <div className="bg-white/5 border border-white/10 p-8 rounded-2xl backdrop-blur-sm">
+                                    <div className="flex items-center gap-4 mb-6">
+                                        <div className="size-16 rounded-2xl bg-saffron flex items-center justify-center text-forest text-2xl font-bold">
+                                            {currentUserProfile.name[0]}
+                                        </div>
+                                        <div>
+                                            <h4 className="font-bold text-xl">{currentUserProfile.name}</h4>
+                                            <p className="text-saffron text-xs font-bold uppercase tracking-widest">{currentUserProfile.specialty}</p>
+                                        </div>
+                                    </div>
+                                    <p className="text-white/60 text-sm mb-6 leading-relaxed line-clamp-3">{currentUserProfile.bio}</p>
+                                    <div className="pt-6 border-t border-white/10">
+                                        {currentUserProfile.verified ? (
+                                            <span className="flex items-center gap-2 text-green-400 text-xs font-bold uppercase tracking-widest">
+                                                <span className="material-symbols-outlined text-sm">verified_user</span> Verified Practitioner
+                                            </span>
+                                        ) : (
+                                            <span className="flex items-center gap-2 text-amber-400 text-xs font-bold uppercase tracking-widest">
+                                                <span className="material-symbols-outlined text-sm">schedule</span> Verification Pending
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="bg-white/5 border border-white/10 p-8 rounded-2xl text-center">
+                                    <span className="material-symbols-outlined text-saffron text-4xl mb-4">clinical_notes</span>
+                                    <h4 className="font-bold mb-2">Practitioner Portal</h4>
+                                    <p className="text-white/50 text-xs mb-6">Verified doctors can share insights and clinical findings with the community.</p>
+                                    <a href="#apply" className="block w-full py-3 bg-white/10 border border-white/20 rounded-lg hover:bg-white/20 transition-all font-bold text-xs uppercase tracking-widest">Enroll To Post</a>
+                                </div>
+                            )}
+
+                            {/* Notifications Feed */}
+                            <div className="space-y-4">
+                                <h5 className="text-[10px] uppercase font-black tracking-[0.2em] text-white/40 px-2">Live Community Feed</h5>
+                                <div className="space-y-3">
+                                    {notifications.slice(0, 5).map(notif => (
+                                        <div key={notif.id} className="bg-white/5 p-4 rounded-xl border border-white/5 flex gap-3 animate-fade-in">
+                                            <span className="material-symbols-outlined text-saffron text-lg">
+                                                {notif.type === 'new_post' ? 'rss_feed' : 'person_add'}
+                                            </span>
+                                            <div>
+                                                <p className="text-[11px] leading-tight text-white/80">{notif.message}</p>
+                                                <p className="text-[9px] text-white/30 mt-1 uppercase font-bold tracking-widest">Just Now</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {notifications.length === 0 && (
+                                        <p className="text-white/30 text-[10px] italic px-2">No recent activities...</p>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Main: Discourse Feed */}
+                        <div className="lg:col-span-2 space-y-12">
+                            {currentUserProfile?.verified && (
+                                <div className="bg-white rounded-3xl p-8 shadow-2xl text-forest relative group overflow-hidden">
+                                     <div className="absolute top-0 right-0 w-32 h-32 bg-forest opacity-[0.03] -translate-y-16 translate-x-16 rounded-full group-hover:scale-125 transition-transform"></div>
+                                     <h3 className="text-2xl font-serif font-bold mb-6 flex items-center gap-3">
+                                        <span className="material-symbols-outlined text-saffron">edit_square</span>
+                                        Share Clinical Insight
+                                     </h3>
+                                     <form onSubmit={handlePostSubmit} className="space-y-6">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <input 
+                                                required
+                                                placeholder="Thread Title"
+                                                value={newPost.title}
+                                                onChange={(e) => setNewPost({...newPost, title: e.target.value})}
+                                                className="w-full bg-forest/5 rounded-xl px-5 py-3 outline-none focus:ring-2 focus:ring-saffron/20 border-none font-bold placeholder:text-forest/30 text-sm"
+                                            />
+                                            <select 
+                                                value={newPost.category}
+                                                onChange={(e) => setNewPost({...newPost, category: e.target.value})}
+                                                className="w-full bg-forest/5 rounded-xl px-5 py-3 outline-none border-none font-bold text-sm text-forest/60"
+                                            >
+                                                <option>Case Study</option>
+                                                <option>Clinical Query</option>
+                                                <option>Herbal Tech</option>
+                                            </select>
+                                        </div>
+                                        <textarea 
+                                            required
+                                            rows={4}
+                                            placeholder="Document your findings, observations or queries here..."
+                                            value={newPost.content}
+                                            onChange={(e) => setNewPost({...newPost, content: e.target.value})}
+                                            className="w-full bg-forest/5 rounded-xl px-5 py-4 outline-none border-none font-medium placeholder:text-forest/30 text-sm resize-none"
+                                        />
+                                        <div className="flex items-center justify-between">
+                                            <p className="text-[10px] text-forest/40 italic">* Posts require peer-review moderation before surfacing.</p>
+                                            <button className="bg-forest text-saffron px-10 py-3 rounded-full font-bold uppercase tracking-widest text-[10px] hover:bg-forest shadow-lg shadow-forest/10 hover:-translate-y-0.5 transition-all">
+                                                Submit For Review
+                                            </button>
+                                        </div>
+                                     </form>
+                                </div>
+                            )}
+
+                            <div className="space-y-8">
+                                <h3 className="text-3xl font-serif font-bold text-white mb-2 leading-tight">Approved Discourses</h3>
+                                <div className="space-y-6">
+                                    {posts.filter(p => p.status === 'approved').map(post => (
+                                        <div key={post.id} className="bg-white/5 border border-white/10 rounded-2xl p-8 hover:bg-white/10 transition-all group">
+                                            <div className="flex justify-between items-start mb-6">
+                                                <div>
+                                                    <span className="inline-block px-3 py-1 bg-saffron/20 text-saffron text-[10px] font-bold rounded-full uppercase tracking-widest mb-3">{post.category}</span>
+                                                    <h4 className="text-2xl font-serif font-bold text-white group-hover:text-saffron transition-colors">{post.title}</h4>
+                                                </div>
+                                                <div className="text-right">
+                                                    <p className="font-bold text-sm text-white/80">{post.author}</p>
+                                                    <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold">{post.specialty}</p>
+                                                </div>
+                                            </div>
+                                            <p className="text-white/60 leading-relaxed text-sm mb-6 line-clamp-3">{post.content}</p>
+                                            <div className="flex items-center justify-between pt-6 border-t border-white/5">
+                                                <div className="flex gap-6">
+                                                    <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-white/40">
+                                                        <span className="material-symbols-outlined text-sm">thumb_up</span> {post.upvotes} Insights
+                                                    </div>
+                                                    <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-white/40">
+                                                        <span className="material-symbols-outlined text-sm">chat_bubble</span> {post.comments} Responses
+                                                    </div>
+                                                </div>
+                                                <Link href="/federation" className="text-saffron text-[10px] font-bold uppercase tracking-[0.2em] flex items-center gap-2 group-hover:translate-x-1 transition-transform">
+                                                    Full Analysis <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                                                </Link>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {posts.filter(p => p.status === 'approved').length === 0 && (
+                                        <div className="py-20 text-center border-2 border-dashed border-white/10 rounded-3xl">
+                                            <span className="material-symbols-outlined text-white/10 text-6xl mb-4">forum</span>
+                                            <p className="text-white/20 font-serif italic text-xl">The clinical floor is open for peer contribution...</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* SECTION 10: FAQ */}
             <section className="py-24 bg-white border-t border-cream-dark">
                 <div className="max-w-4xl mx-auto px-6 lg:px-10">
                     <div className="text-center mb-16">
