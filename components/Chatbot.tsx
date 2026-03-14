@@ -163,35 +163,36 @@ export default function Chatbot() {
             <button
                 type="button"
                 onClick={handleToggle}
-                className={`fixed bottom-28 right-6 sm:bottom-6 sm:right-6 z-50 w-16 h-16 rounded-full bg-secondary text-white shadow-2xl flex items-center justify-center transition-transform duration-300 hover:scale-105 ${isOpen ? 'rotate-90 scale-0 opacity-0 pointer-events-none' : 'rotate-0 scale-100 opacity-100'}`}
+                className={`fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-[100] w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-slate-900 text-white shadow-2xl flex items-center justify-center border-2 border-white transition-transform duration-300 hover:scale-105 ${isOpen ? 'rotate-90 scale-0 opacity-0 pointer-events-none' : 'rotate-0 scale-100 opacity-100'}`}
                 aria-label="Open Chat"
             >
                 <div className="relative">
-                    <span className="material-symbols-outlined text-3xl">forum</span>
+                    <span className="material-symbols-outlined text-[28px] sm:text-3xl">forum</span>
                     {hasUnread && (
-                        <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-secondary animate-pulse"></span>
+                        <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 rounded-full border-2 border-slate-900 animate-pulse"></span>
                     )}
                 </div>
             </button>
 
             {/* Chat Window */}
             <div
-                className={`fixed bottom-28 right-6 sm:bottom-8 sm:right-8 z-50 w-[calc(100vw-3rem)] sm:w-[400px] h-[600px] max-h-[75vh] bg-white rounded-3xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden transition-all duration-300 origin-bottom-right ${isOpen ? 'scale-100 opacity-100 pointer-events-auto' : 'scale-75 opacity-0 pointer-events-none'}`}
+                className={`fixed bottom-4 right-4 sm:bottom-8 sm:right-8 z-[100] w-[calc(100vw-2rem)] sm:w-[400px] h-[calc(100svh-6rem)] sm:h-[600px] sm:max-h-[75vh] bg-white rounded-3xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden transition-all duration-300 origin-bottom-right ${isOpen ? 'scale-100 opacity-100 pointer-events-auto' : 'scale-75 opacity-0 pointer-events-none'}`}
             >
                 {/* Header */}
-                <div className="bg-secondary p-4 flex items-center justify-between text-white shrink-0">
+                <div className="bg-secondary p-4 flex items-center justify-between text-slate-900 shrink-0 border-b border-black/5">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center border border-primary/30">
-                            <span className="material-symbols-outlined text-primary text-xl">self_improvement</span>
+                        <div className="w-10 h-10 rounded-full bg-white/60 flex items-center justify-center border border-black/10 shadow-sm">
+                            <span className="material-symbols-outlined text-slate-900 text-xl">self_improvement</span>
                         </div>
                         <div>
-                            <h3 className="font-display font-bold text-lg leading-tight">pantulu</h3>
-                            <p className="text-xs text-white/70 font-medium tracking-wide">Ayurvedic AI Assistant</p>
+                            <h3 className="font-display font-bold text-lg leading-tight text-slate-900">Pantulu</h3>
+                            <p className="text-xs text-slate-800 font-medium tracking-wide">Ayurvedic AI Assistant</p>
                         </div>
                     </div>
                     <button
                         onClick={() => setIsOpen(false)}
-                        className="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center transition-colors"
+                        className="w-10 h-10 rounded-full bg-black/5 hover:bg-black/10 flex items-center justify-center transition-colors text-slate-900 ring-1 ring-black/5"
+                        aria-label="Close Chat"
                     >
                         <span className="material-symbols-outlined">close</span>
                     </button>
