@@ -11,13 +11,16 @@ export async function GET(request: Request) {
     const category = searchParams.get('category') || '';
     const status = searchParams.get('status') || '';
 
-    if (!db) {
-        return NextResponse.json({ error: "Database not initialized" }, { status: 503 });
+    let dbProducts: any[] = [];
+    if (db) {
+        try {
+            let q = query(collection(db, 'products'));
+            const snapshot = await getDocs(q);
+            dbProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        } catch (e) {
+            console.error("Error fetching admin products from DB:", e);
+        }
     }
-
-    let q = query(collection(db, 'products'));
-    const snapshot = await getDocs(q);
-    let dbProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
     const existingIds = new Set(dbProducts.map(prod => String(prod.id)));
     const missingMockProducts = MOCK_PRODUCTS.filter(prod => !existingIds.has(String(prod.id))).map((prod: any) => ({
