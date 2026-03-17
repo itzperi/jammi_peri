@@ -8,7 +8,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter();
 
   useEffect(() => {
-    const session = localStorage.getItem("jammi_admin_session");
+    const session = sessionStorage.getItem("jammi_admin_session");
     if (session === "true") {
       setIsAuthenticated(true);
     } else {

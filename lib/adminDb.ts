@@ -1,31 +1,28 @@
-import { db } from './firebase';
-import { 
-  collection, 
-  doc, 
-  getDoc, 
-  getDocs, 
-  updateDoc, 
-  deleteDoc, 
-  addDoc, 
-  query, 
-  orderBy,
-  onSnapshot
-} from 'firebase/firestore';
+import { supabase } from './supabase';
 
 // Generic real-time subscription helper
 export const subscribeToCollection = (
     collectionName: string, 
     callback: (data: any[]) => void
 ) => {
-    if (!db) {
-        console.warn(`Firestore: db is null, cannot subscribe to ${collectionName}`);
-        return () => {};
-    }
-    const q = query(collection(db, collectionName));
-    return onSnapshot(q, (snapshot) => {
-        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        callback(data);
+    // Initial fetch
+    supabase.from(collectionName).select('*').then(({ data, error }) => {
+        if (!error && data) callback(data);
     });
+
+    // Realtime subscription
+    const channel = supabase.channel(`public:${collectionName}`)
+        .on('postgres_changes', { event: '*', schema: 'public', table: collectionName }, (payload) => {
+            // Re-fetch everything on change for simplicity, or we could mutate state
+            supabase.from(collectionName).select('*').then(({ data, error }) => {
+                if (!error && data) callback(data);
+            });
+        })
+        .subscribe();
+
+    return () => {
+        supabase.removeChannel(channel);
+    };
 };
 
 // Generic real-time document subscription helper
@@ -34,102 +31,76 @@ export const subscribeToDocument = (
     id: string,
     callback: (data: any) => void
 ) => {
-    if (!db) {
-        console.warn(`Firestore: db is null, cannot subscribe to doc ${id} in ${collectionName}`);
-        return () => {};
-    }
-    const docRef = doc(db, collectionName, id);
-    return onSnapshot(docRef, (snapshot) => {
-        if (snapshot.exists()) {
-            callback({ id: snapshot.id, ...snapshot.data() });
-        } else {
-            callback(null);
-        }
+    supabase.from(collectionName).select('*').eq('id', id).single().then(({ data, error }) => {
+        if (!error && data) callback(data);
+        else callback(null);
     });
+
+    const channel = supabase.channel(`public:${collectionName}:${id}`)
+        .on('postgres_changes', { event: '*', schema: 'public', table: collectionName, filter: `id=eq.${id}` }, (payload) => {
+            if (payload.eventType === 'DELETE') {
+                 callback(null);
+            } else {
+                 callback(payload.new);
+            }
+        })
+        .subscribe();
+
+    return () => {
+        supabase.removeChannel(channel);
+    };
 };
 
 // Generic CRUD helpers
 export const fetchCollection = async (collectionName: string) => {
-    if (!db) return [];
-    try {
-        const q = query(collection(db, collectionName)); 
-        const snapshot = await getDocs(q);
-        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    } catch (e) {
-        console.error(`fetchCollection error for ${collectionName}:`, e);
+    const { data, error } = await supabase.from(collectionName).select('*');
+    if (error) {
+        console.error(`fetchCollection error for ${collectionName}:`, error);
         return [];
     }
+    return data || [];
 };
 
 export const fetchDocument = async (collectionName: string, id: string) => {
-    if (!db) return null;
-    try {
-        const docRef = doc(db, collectionName, id);
-        const snapshot = await getDoc(docRef);
-        if (snapshot.exists()) {
-            return { id: snapshot.id, ...snapshot.data() };
-        }
-    } catch (e) {
-        console.error(`fetchDocument error for ${collectionName}/${id}:`, e);
+    const { data, error } = await supabase.from(collectionName).select('*').eq('id', id).single();
+    if (error) {
+        console.error(`fetchDocument error for ${collectionName}/${id}:`, error);
+        return null;
     }
-    return null;
+    return data;
 };
 
 export const createDocument = async (collectionName: string, data: any) => {
-    if (!db) throw new Error("Database not initialized");
-    const docRef = await addDoc(collection(db, collectionName), {
-        ...data,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-    });
-    return docRef.id;
+    const { data: insertedData, error } = await supabase.from(collectionName).insert([{
+        ...data
+    }]).select('id').single();
+    
+    if (error) throw new Error(error.message);
+    return insertedData?.id;
 };
 
 export const updateDocument = async (collectionName: string, id: string, data: any) => {
-    if (!db) throw new Error("Database not initialized");
-    const docRef = doc(db, collectionName, id);
-    await updateDoc(docRef, {
+    const { error } = await supabase.from(collectionName).update({
         ...data,
         updatedAt: new Date().toISOString()
-    });
+    }).eq('id', id);
+    
+    if (error) throw new Error(error.message);
 };
 
 export const deleteDocument = async (collectionName: string, id: string) => {
-    if (!db) throw new Error("Database not initialized");
-    const docRef = doc(db, collectionName, id);
-    await deleteDoc(docRef);
+    const { error } = await supabase.from(collectionName).delete().eq('id', id);
+    if (error) throw new Error(error.message);
 };
 
-// Sequential Order ID Generator
+// Sequential Order ID Generator - since we use uuids for orders, this logic might need changes
+// but we will maintain the API.
 export const getNextOrderNumber = async () => {
-    if (!db) throw new Error("Database not initialized");
-    const { runTransaction, doc: firestoreDoc } = await import('firebase/firestore');
-    
-    try {
-        const counterRef = firestoreDoc(db, 'metadata', 'orders_counter');
-        
-        const newCount = await runTransaction(db, async (transaction) => {
-            const counterDoc = await transaction.get(counterRef);
-            let count = 1;
-            
-            if (counterDoc.exists()) {
-                count = (counterDoc.data()?.count || 0) + 1;
-            }
-            
-            transaction.set(counterRef, { count }, { merge: true });
-            return count;
-        });
-        
-        return `Jammi-${newCount}`;
-    } catch (e) {
-        console.error("Error generating order number:", e);
-        // Fallback to timestamp-based if transaction fails
-        return `Jammi-${Date.now().toString().slice(-6)}`;
-    }
+    // In Supabase, usually you'd use a sequence or RPC for atomic increments.
+    // For now, fallback to timestamp for simplicity unless an RPC is created.
+    return `Jammi-${Date.now().toString().slice(-6)}`;
 };
 
 export const runTransaction = async (updateFunction: (transaction: any) => Promise<any>) => {
-    if (!db) throw new Error("Database not initialized");
-    const { runTransaction: firestoreRunTransaction } = await import('firebase/firestore');
-    return await firestoreRunTransaction(db, updateFunction);
+    throw new Error("runTransaction is not directly supported in Supabase JS client. Use RPC instead.");
 };

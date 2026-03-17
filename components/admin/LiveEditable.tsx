@@ -1,6 +1,5 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { usePathname } from 'next/navigation';
 import { useAdmin } from './AdminContext';
 import { updateDocument } from '../../lib/adminDb';
 
@@ -22,12 +21,17 @@ const LiveEditable: React.FC<LiveEditableProps> = ({
   className = "" 
 }) => {
   const { isAdmin, isEditMode } = useAdmin();
-  const pathname = usePathname();
   const [value, setValue] = useState<string>('');
   const [isSaving, setIsSaving] = useState(false);
   const [showEditor, setShowEditor] = useState(false);
+  const [isEditorRole, setIsEditorRole] = useState(false);
 
-  const isRestrictedPage = pathname === '/founders';
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const role = sessionStorage.getItem("jammi_role");
+      setIsEditorRole(role === 'editor');
+    }
+  }, []);
 
   useEffect(() => {
     const extractText = (node: any): string => {
@@ -44,7 +48,8 @@ const LiveEditable: React.FC<LiveEditableProps> = ({
     }
   }, [children]);
 
-  if (!isAdmin || !isEditMode || isRestrictedPage) {
+  // Only allow editing for 'editor' role (not 'admin')
+  if (!isAdmin || !isEditMode || !isEditorRole) {
     return <span className={className}>{children}</span>;
   }
 

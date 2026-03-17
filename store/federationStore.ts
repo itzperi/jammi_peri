@@ -1,92 +1,52 @@
 import { create } from 'zustand';
 import { FederationStore, ForumPost, DoctorProfile, PartnerRequest, Notification, Product } from '../types/federation';
-import { db, auth } from '../lib/firebase';
-import { collection, onSnapshot, doc, updateDoc, deleteDoc, addDoc, query, orderBy, getDoc, runTransaction, setDoc } from 'firebase/firestore';
-import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
+import { supabase } from '../lib/supabase';
 
 export const useFederationStore = create<FederationStore>((set, get) => {
-    // Initialize Firestore listeners
-    if (db) {
-        // Posts Listener
-        const postsQuery = query(collection(db, 'federation_posts'), orderBy('timestamp', 'desc'));
-        onSnapshot(postsQuery, (snapshot) => {
-            const posts: ForumPost[] = [];
-            snapshot.forEach((doc) => {
-                posts.push({ id: doc.id, ...doc.data() } as ForumPost);
-            });
-            set({ posts });
-        }, (error) => {
-            console.error("Error fetching posts:", error);
-        });
+    
+    // Helper to fetch and subscribe
+    const setupSubscription = async (table: string, stateKey: string, orderByCol = 'timestamp', ascending = false) => {
+        const fetchInitial = async () => {
+            const { data, error } = await supabase.from(table).select('*').order(orderByCol, { ascending });
+            if (!error && data) {
+                set({ [stateKey]: data } as any);
+            }
+        };
+        
+        await fetchInitial();
+        
+        supabase
+            .channel(`public:${table}`)
+            .on('postgres_changes', { event: '*', schema: 'public', table }, fetchInitial)
+            .subscribe();
+    };
 
-        // Doctor Profiles Listener
-        const doctorsQuery = query(collection(db, 'doctor_profiles'), orderBy('timestamp', 'desc'));
-        onSnapshot(doctorsQuery, (snapshot) => {
-            const doctorProfiles: DoctorProfile[] = [];
-            snapshot.forEach((doc) => {
-                doctorProfiles.push({ id: doc.id, ...doc.data() } as DoctorProfile);
-            });
-            set({ doctorProfiles });
-        });
+    if (typeof window !== 'undefined') {
+        setupSubscription('federation_posts', 'posts');
+        setupSubscription('doctor_profiles', 'doctorProfiles');
+        setupSubscription('partner_requests', 'partnerRequests');
+        setupSubscription('federation_notifications', 'notifications');
+        setupSubscription('customers', 'customers');
+        setupSubscription('products', 'products', 'category', true);
 
-        // Partner Requests Listener
-        const partnersQuery = query(collection(db, 'partner_requests'), orderBy('timestamp', 'desc'));
-        onSnapshot(partnersQuery, (snapshot) => {
-            const partnerRequests: PartnerRequest[] = [];
-            snapshot.forEach((doc) => {
-                partnerRequests.push({ id: doc.id, ...doc.data() } as PartnerRequest);
-            });
-            set({ partnerRequests });
-        });
+        // Check for hardcoded admin session
+        if (sessionStorage.getItem("jammi_admin_session") === "true") {
+            set({ isAdminLoggedIn: true, sanctumModalOpen: false });
+        }
 
-        // Notifications Listener
-        const notificationsQuery = query(collection(db, 'federation_notifications'), orderBy('timestamp', 'desc'));
-        onSnapshot(notificationsQuery, (snapshot) => {
-            const notifications: Notification[] = [];
-            snapshot.forEach((doc) => {
-                notifications.push({ id: doc.id, ...doc.data() } as Notification);
-            });
-            set({ notifications });
-        });
-
-        // Customers Listener
-        const customersQuery = query(collection(db, 'customers'), orderBy('timestamp', 'desc'));
-        onSnapshot(customersQuery, (snapshot) => {
-            const customers: any[] = [];
-            snapshot.forEach((doc) => {
-                customers.push({ id: doc.id, ...doc.data() });
-            });
-            set({ customers });
-        });
-
-        // Products Listener
-        const productsQuery = query(collection(db, 'products'), orderBy('category', 'asc'));
-        onSnapshot(productsQuery, (snapshot) => {
-            const products: Product[] = [];
-            snapshot.forEach((doc) => {
-                products.push({ id: doc.id, ...doc.data() } as Product);
-            });
-            set({ products });
-        });
-    }
-
-    // Initialize Auth listener if auth is available
-    if (auth && db) {
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                set({ userUID: user.uid });
-                // Simplified admin check - you might want to use custom claims in a real app
-                if (user.email === 'admin@jammi.com') {
+        // Auth listener
+        supabase.auth.onAuthStateChange(async (event, session) => {
+            if (session?.user) {
+                set({ userUID: session.user.id });
+                if (session.user.email === 'admin@jammi.com') {
                     set({ isAdminLoggedIn: true, sanctumModalOpen: false });
                 }
                 
-                // Always try to fetch profile if logged in
-                const docRef = doc(db, 'doctor_profiles', user.uid);
-                const docSnap = await getDoc(docRef);
-                if (docSnap.exists()) {
-                    set({ currentUserProfile: { id: docSnap.id, ...docSnap.data() } as DoctorProfile });
+                const { data } = await supabase.from('doctor_profiles').select('*').eq('id', session.user.id).single();
+                if (data) {
+                    set({ currentUserProfile: data as DoctorProfile });
                 }
-            } else {
+            } else if (sessionStorage.getItem("jammi_admin_session") !== "true") {
                 set({ isAdminLoggedIn: false, userUID: null, currentUserProfile: null });
             }
         });
@@ -107,15 +67,13 @@ export const useFederationStore = create<FederationStore>((set, get) => {
 
         approvePost: async (id) => {
             try {
-                const postRef = doc(db, 'federation_posts', id);
-                await updateDoc(postRef, { status: 'approved' });
+                await supabase.from('federation_posts').update({ status: 'approved' }).eq('id', id);
                 
-                // Notify users that a doctor has posted
                 const post = get().posts.find(p => p.id === id);
                 if (post) {
-                    await addDoc(collection(db, 'federation_notifications'), {
+                    await supabase.from('federation_notifications').insert({
                         type: 'new_post',
-                        message: `${post.author} has posted: ${post.title}`,
+                        message: `${post?.author || 'Someone'} has posted: ${post?.title || 'A new post'}`,
                         timestamp: new Date().toISOString(),
                         isRead: false,
                         link: '/federation'
@@ -128,8 +86,7 @@ export const useFederationStore = create<FederationStore>((set, get) => {
         
         rejectPost: async (id) => {
             try {
-                const postRef = doc(db, 'federation_posts', id);
-                await updateDoc(postRef, { status: 'rejected' });
+                await supabase.from('federation_posts').update({ status: 'rejected' }).eq('id', id);
             } catch (error) {
                 console.error("Error rejecting post:", error);
             }
@@ -145,7 +102,7 @@ export const useFederationStore = create<FederationStore>((set, get) => {
                     status: 'pending',
                     timestamp: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }).toUpperCase(),
                 };
-                await addDoc(collection(db, 'federation_posts'), newPost);
+                await supabase.from('federation_posts').insert(newPost);
             } catch (error) {
                 console.error("Error submitting post:", error);
             }
@@ -155,8 +112,7 @@ export const useFederationStore = create<FederationStore>((set, get) => {
             try {
                 const post = get().posts.find(p => p.id === id);
                 if (post) {
-                    const postRef = doc(db, 'federation_posts', id);
-                    await updateDoc(postRef, { upvotes: post.upvotes + 1 });
+                    await supabase.from('federation_posts').update({ upvotes: (post.upvotes || 0) + 1 }).eq('id', id);
                 }
             } catch (error) {
                 console.error("Error upvoting post:", error);
@@ -174,11 +130,10 @@ export const useFederationStore = create<FederationStore>((set, get) => {
                         timestamp: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }).toUpperCase(),
                     };
                     const updatedCommentsList = post.commentsList ? [...post.commentsList, newComment] : [newComment];
-                    const postRef = doc(db, 'federation_posts', postId);
-                    await updateDoc(postRef, { 
-                        comments: post.comments + 1,
+                    await supabase.from('federation_posts').update({ 
+                        comments: (post.comments || 0) + 1,
                         commentsList: updatedCommentsList
-                    });
+                    }).eq('id', postId);
                 }
             } catch (error) {
                 console.error("Error submitting comment:", error);
@@ -194,12 +149,11 @@ export const useFederationStore = create<FederationStore>((set, get) => {
                     verified: false,
                     timestamp: new Date().toISOString(),
                 };
-                if (userUID && db) {
-                    await setDoc(doc(db, 'doctor_profiles', userUID), newProfile);
-                    // Update local state immediately for better UX
+                if (userUID) {
+                    await supabase.from('doctor_profiles').upsert({ id: userUID, ...newProfile });
                     set({ currentUserProfile: { id: userUID, ...newProfile } as DoctorProfile });
-                } else if (db) {
-                    await addDoc(collection(db, 'doctor_profiles'), newProfile);
+                } else {
+                    await supabase.from('doctor_profiles').insert(newProfile);
                 }
             } catch (error) {
                 console.error("Error creating doctor profile:", error);
@@ -208,13 +162,11 @@ export const useFederationStore = create<FederationStore>((set, get) => {
 
         verifyDoctor: async (id) => {
             try {
-                if (!db) return;
-                const docRef = doc(db, 'doctor_profiles', id);
-                await updateDoc(docRef, { verified: true });
+                await supabase.from('doctor_profiles').update({ verified: true }).eq('id', id);
                 
                 const profile = get().doctorProfiles.find(p => p.id === id);
                 if (profile) {
-                    await addDoc(collection(db, 'federation_notifications'), {
+                    await supabase.from('federation_notifications').insert({
                         type: 'doctor_joined',
                         message: `${profile.name} has joined the Federation Community.`,
                         timestamp: new Date().toISOString(),
@@ -230,13 +182,12 @@ export const useFederationStore = create<FederationStore>((set, get) => {
         // Partner Actions
         submitPartnerRequest: async (requestData) => {
             try {
-                if (!db) return;
                 const newRequest = {
                     ...requestData,
                     status: 'pending',
                     timestamp: new Date().toISOString(),
                 };
-                await addDoc(collection(db, 'partner_requests'), newRequest);
+                await supabase.from('partner_requests').insert(newRequest);
             } catch (error) {
                 console.error("Error submitting partner request:", error);
             }
@@ -244,9 +195,7 @@ export const useFederationStore = create<FederationStore>((set, get) => {
 
         verifyPartner: async (id) => {
             try {
-                if (!db) return;
-                const partnerRef = doc(db, 'partner_requests', id);
-                await updateDoc(partnerRef, { status: 'verified' });
+                await supabase.from('partner_requests').update({ status: 'verified' }).eq('id', id);
             } catch (error) {
                 console.error("Error verifying partner:", error);
             }
@@ -254,9 +203,7 @@ export const useFederationStore = create<FederationStore>((set, get) => {
 
         markNotificationRead: async (id) => {
             try {
-                if (!db) return;
-                const notifRef = doc(db, 'federation_notifications', id);
-                await updateDoc(notifRef, { isRead: true });
+                await supabase.from('federation_notifications').update({ isRead: true }).eq('id', id);
             } catch (error) {
                 console.error("Error marking notification as read:", error);
             }
@@ -265,12 +212,11 @@ export const useFederationStore = create<FederationStore>((set, get) => {
         // Product Actions
         addProduct: async (productData) => {
             try {
-                if (!db) return;
                 const newProduct = {
                     ...productData,
                     timestamp: new Date().toISOString(),
                 };
-                await addDoc(collection(db, 'products'), newProduct);
+                await supabase.from('products').insert(newProduct);
             } catch (error) {
                 console.error("Error adding product:", error);
             }
@@ -278,12 +224,10 @@ export const useFederationStore = create<FederationStore>((set, get) => {
 
         updateProduct: async (id, productData) => {
             try {
-                if (!db) return;
-                const productRef = doc(db, 'products', id);
-                await updateDoc(productRef, {
+                await supabase.from('products').update({
                     ...productData,
                     updatedAt: new Date().toISOString()
-                });
+                }).eq('id', id);
             } catch (error) {
                 console.error("Error updating product:", error);
             }
@@ -291,9 +235,7 @@ export const useFederationStore = create<FederationStore>((set, get) => {
 
         deleteProduct: async (id) => {
             try {
-                if (!db) return;
-                const productRef = doc(db, 'products', id);
-                await deleteDoc(productRef);
+                await supabase.from('products').delete().eq('id', id);
             } catch (error) {
                 console.error("Error deleting product:", error);
             }
@@ -301,10 +243,20 @@ export const useFederationStore = create<FederationStore>((set, get) => {
 
         loginAdmin: async (username, pass) => {
             try {
-                if (!auth) return false;
+                if (username.trim() === 'JammiPharma' && pass.trim() === 'Jammi@007') {
+                    set({ isAdminLoggedIn: true, sanctumModalOpen: false });
+                    sessionStorage.setItem("jammi_admin_session", "true");
+                    return true;
+                }
+
                 const email = username.includes('@') ? username : `${username}@jammi.com`;
-                await signInWithEmailAndPassword(auth, email, pass);
-                return true;
+                const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
+                
+                if (!error) {
+                    sessionStorage.setItem("jammi_admin_session", "true");
+                    return true;
+                }
+                return false;
             } catch (error) {
                 console.error("Error logging in:", error);
                 return false;
@@ -313,7 +265,9 @@ export const useFederationStore = create<FederationStore>((set, get) => {
 
         logoutAdmin: async () => {
             try {
-                if (auth) await signOut(auth);
+                await supabase.auth.signOut();
+                sessionStorage.removeItem("jammi_admin_session");
+                set({ isAdminLoggedIn: false });
             } catch (error) {
                 console.error("Error logging out:", error);
             }
@@ -333,19 +287,18 @@ export const useFederationStore = create<FederationStore>((set, get) => {
 
         getNextCustomerID: async () => {
             try {
-                if (!db) throw new Error("Firestore not initialized");
-                const counterRef = doc(db, 'metadata', 'counters');
-                const nextId = await runTransaction(db, async (transaction) => {
-                    const counterDoc = await transaction.get(counterRef);
-                    if (!counterDoc.exists()) {
-                        transaction.set(counterRef, { customerId: 1 });
-                        return 1;
-                    }
-                    const newId = (counterDoc.data().customerId || 0) + 1;
-                    transaction.update(counterRef, { customerId: newId });
-                    return newId;
-                });
-                return `customer-${nextId}`;
+                const { data, error } = await supabase
+                    .from('customers')
+                    .select('id')
+                    .order('createdAt', { ascending: false })
+                    .limit(1);
+                    
+                if (data && data.length > 0 && data[0].id) {
+                    const lastIdStr = data[0].id.replace('customer-', '');
+                    const lastId = parseInt(lastIdStr) || 0;
+                    return `customer-${lastId + 1}`;
+                }
+                return 'customer-1';
             } catch (error) {
                 console.error("Error generating customer ID:", error);
                 return `customer-${Math.floor(Math.random() * 10000)}`;

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useFederationStore } from '../../../store/federationStore';
 import { subscribeToCollection, createDocument, updateDocument, deleteDocument } from '../../../lib/adminDb';
+import ImageUploader from '../../../components/ImageUploader';
 
 interface Bundle {
   id: string;
@@ -10,6 +11,7 @@ interface Bundle {
   productIds: string[];
   discountPercentage: number;
   isActive: boolean;
+  imageUrl?: string;
   createdAt: string;
 }
 
@@ -27,6 +29,7 @@ const BundlesPage = () => {
     name: '',
     discountPercentage: 0,
     isActive: true,
+    imageUrl: '',
   });
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
 
@@ -63,6 +66,7 @@ const BundlesPage = () => {
       name: '',
       discountPercentage: 0,
       isActive: true,
+      imageUrl: '',
     });
     setSelectedProductIds([]);
     setShowModal(true);
@@ -74,6 +78,7 @@ const BundlesPage = () => {
       name: bundle.name,
       discountPercentage: bundle.discountPercentage,
       isActive: bundle.isActive,
+      imageUrl: bundle.imageUrl || '',
     });
     setSelectedProductIds(bundle.productIds || []);
     setShowModal(true);
@@ -107,6 +112,7 @@ const BundlesPage = () => {
         discountPercentage: formData.discountPercentage,
         productIds: selectedProductIds,
         isActive: formData.isActive,
+        imageUrl: formData.imageUrl,
         updatedAt: new Date().toISOString()
       };
 
@@ -268,6 +274,17 @@ const BundlesPage = () => {
                       placeholder="e.g. 10"
                       className="w-full border-cream-dark rounded-xl h-12 focus:ring-primary"
                       required
+                    />
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-bold text-slate-700 mb-2">Bundle Image</label>
+                    <ImageUploader 
+                      bucket="bundle-images"
+                      folder="bundles"
+                      currentUrl={formData.imageUrl}
+                      onUpload={(url) => setFormData(prev => ({ ...prev, imageUrl: url }))}
+                      label="Upload Bundle Image"
                     />
                   </div>
                 </div>

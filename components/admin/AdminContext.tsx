@@ -5,7 +5,7 @@ interface AdminContextType {
   isAdmin: boolean;
   isEditMode: boolean;
   setIsEditMode: (val: boolean) => void;
-  logout: () => void;
+  logout: () => Promise<void>;
 }
 
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
@@ -16,10 +16,10 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   useEffect(() => {
     // Check for admin session and edit mode on mount
-    const session = localStorage.getItem("jammi_admin_session");
+    const session = sessionStorage.getItem("jammi_admin_session");
     if (session === "true") {
       setIsAdmin(true);
-      const editMode = localStorage.getItem("jammi_edit_mode");
+      const editMode = sessionStorage.getItem("jammi_edit_mode");
       if (editMode === "true") {
         setIsEditMode(true);
       }
@@ -28,12 +28,14 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const handleSetEditMode = (val: boolean) => {
     setIsEditMode(val);
-    localStorage.setItem("jammi_edit_mode", val ? "true" : "false");
+    sessionStorage.setItem("jammi_edit_mode", val ? "true" : "false");
   };
 
-  const logout = () => {
-    localStorage.removeItem("jammi_admin_session");
-    localStorage.removeItem("jammi_edit_mode");
+  const logout = async () => {
+    const { supabase } = await import('../../lib/supabase');
+    await supabase.auth.signOut();
+    sessionStorage.removeItem("jammi_admin_session");
+    sessionStorage.removeItem("jammi_edit_mode");
     setIsAdmin(false);
     setIsEditMode(false);
     window.location.reload();

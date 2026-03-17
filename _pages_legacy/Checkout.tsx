@@ -1,21 +1,30 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { useCart } from '../hooks/useCart';
 import { useFederationStore } from '../store/federationStore';
 
+function CartSkeleton() {
+  return (
+    <div>
+      {[1, 2, 3].map(i => (
+        <div key={i} style={{ display: 'flex', gap: 16, padding: '12px 0', borderBottom: '1px solid #f5f0e8', alignItems: 'center' }}>
+          <div style={{ width: 80, height: 80, borderRadius: 12, background: 'linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%)', backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite', flexShrink: 0 }} />
+          <div style={{ flex: 1 }}>
+            <div style={{ height: 14, width: '65%', borderRadius: 4, background: '#f0f0f0', marginBottom: 8 }} />
+            <div style={{ height: 12, width: '35%', borderRadius: 4, background: '#f0f0f0', marginBottom: 6 }} />
+            <div style={{ height: 14, width: '25%', borderRadius: 4, background: '#f0f0f0' }} />
+          </div>
+        </div>
+      ))}
+      <style>{`@keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }`}</style>
+    </div>
+  );
+}
+
 const Checkout: React.FC = () => {
+  const { items: cartItems, totalItems, subtotal, increaseQty, decreaseQty, removeFromCart, clearCart, addToCart, loading: cartLoading, guestId } = useCart();
   const { products } = useFederationStore();
-  
-  // Initialize with a real product if available
-  const [cartItems, setCartItems] = useState<any[]>([]);
-  const [initialized, setInitialized] = useState(false);
-  
-  useEffect(() => {
-    if (products.length > 0 && !initialized) {
-      setCartItems([products[0]]);
-      setInitialized(true);
-    }
-  }, [products, initialized]);
 
   const [isPlacing, setIsPlacing] = useState(false);
   const [orderConfirmed, setOrderConfirmed] = useState(false);
@@ -28,7 +37,7 @@ const Checkout: React.FC = () => {
   const [appliedCoupon, setAppliedCoupon] = useState<any | null>(null);
   const [couponError, setCouponError] = useState('');
 
-  // Form states
+
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -44,12 +53,12 @@ const Checkout: React.FC = () => {
     const fetchPromotions = async () => {
       try {
         const { fetchCollection } = await import('../lib/adminDb');
-        
+
         const couponsData = await fetchCollection('coupons');
-        setCoupons(couponsData.filter((c: any) => c.isActive));
-        
+        setCoupons(couponsData.filter((c: any) => c.active));
+
         const bundlesData = await fetchCollection('bundles');
-        setBundles(bundlesData.filter((b: any) => b.isActive));
+        setBundles(bundlesData.filter((b: any) => b.active));
       } catch (err) {
         console.error("Failed to fetch promotions", err);
       }
@@ -58,36 +67,37 @@ const Checkout: React.FC = () => {
   }, []);
 
   // --- Evaluate Bundles ---
-  const cartItemIds = cartItems.map(item => item.id);
-  
+  const cartItemIds = cartItems.map(item => item.product_id);
+
   let totalBundleDiscount = 0;
   const appliedBundles: any[] = [];
   const suggestedBundleProducts: any[] = [];
-  
-  const sortedBundles = [...bundles].sort((a,b) => b.discountPercentage - a.discountPercentage);
+
+  const sortedBundles = [...bundles].sort((a, b) => b.discount_percent - a.discount_percent);
   const usedProductIds = new Set<string>();
-  
+
   sortedBundles.forEach(bundle => {
-    const bundleProductIds = bundle.productIds || [];
+    const bundleProductIds = bundle.product_ids || [];
     if (bundleProductIds.length === 0) return;
 
     // Check overlaps
     const isFullyMatched = bundleProductIds.every((id: string) => cartItemIds.includes(id));
     const isPartiallyMatched = !isFullyMatched && bundleProductIds.some((id: string) => cartItemIds.includes(id));
-    
+
     if (isFullyMatched) {
       const hasOverlap = bundleProductIds.some((id: string) => usedProductIds.has(id));
       if (!hasOverlap) {
         appliedBundles.push(bundle);
         bundleProductIds.forEach((id: string) => usedProductIds.add(id));
-        
+
         let bundlePriceSum = 0;
         bundleProductIds.forEach((id: string) => {
-          const item = cartItems.find(cItem => cItem.id === id);
-          if (item) bundlePriceSum += item.price;
+          const item = cartItems.find(cItem => cItem.product_id === id);
+          // Assuming bundles apply once per unique item matched.
+          if (item?.product?.price) bundlePriceSum += item.product.price;
         });
-        
-        totalBundleDiscount += (bundlePriceSum * bundle.discountPercentage) / 100;
+
+        totalBundleDiscount += (bundlePriceSum * bundle.discount_percent) / 100;
       }
     } else if (isPartiallyMatched) {
       // Suggest missing products
@@ -98,7 +108,7 @@ const Checkout: React.FC = () => {
           suggestedBundleProducts.push({
             ...prod,
             suggestedByBundle: bundle.name,
-            discountPercentage: bundle.discountPercentage
+            discountPercentage: bundle.discount_percent
           });
         }
       });
@@ -106,8 +116,6 @@ const Checkout: React.FC = () => {
   });
 
   // Calculate totals
-  const subtotal = cartItems.reduce((acc, item) => acc + (item.price || 0), 0);
-  
   let couponDiscountAmount = 0;
   if (appliedCoupon) {
     if (appliedCoupon.discountType === 'percentage') {
@@ -116,24 +124,21 @@ const Checkout: React.FC = () => {
       couponDiscountAmount = appliedCoupon.discountValue;
     }
   }
-  
+
   totalBundleDiscount = Math.round(totalBundleDiscount);
   const totalDiscount = Math.round(couponDiscountAmount + totalBundleDiscount);
   const total = Math.max(0, subtotal - totalDiscount);
 
-  const handleAddBundleProduct = (product: any) => {
-    // Determine the product price taking bundle discounts as potentially applied later
-    setCartItems([...cartItems, product]);
+  const handleAddBundleProduct = async (product: any) => {
+    await addToCart(product.id, 1);
   };
 
-  const handleRemoveItem = (index: number) => {
-    const newItems = [...cartItems];
-    newItems.splice(index, 1);
-    setCartItems(newItems);
-    
+  const handleRemoveItem = async (productId: string) => {
+    await removeFromCart(productId);
+
     // Auto-remove coupon if minimum requirement failure
     if (appliedCoupon) {
-      const newSubtotal = newItems.reduce((acc, item) => acc + (item.price || 0), 0);
+      const newSubtotal = cartItems.filter(i => i.product_id !== productId).reduce((acc, item) => acc + (item.product?.price || 0) * item.quantity, 0);
       if (newSubtotal < appliedCoupon.minOrderAmount) {
         setAppliedCoupon(null);
         setCouponError('Coupon removed: Order sum fell below minimum required.');
@@ -148,16 +153,16 @@ const Checkout: React.FC = () => {
   const handleApplyCoupon = () => {
     setCouponError('');
     setAppliedCoupon(null);
-    
+
     if (!couponCode.trim()) return;
 
     const foundCoupon = coupons.find(c => c.code === couponCode.trim().toUpperCase());
-    
+
     if (!foundCoupon) {
       setCouponError('Invalid coupon code.');
       return;
     }
-    
+
     if (subtotal < foundCoupon.minOrderAmount) {
       setCouponError(`Minimum order amount of ₹${foundCoupon.minOrderAmount} required.`);
       return;
@@ -180,58 +185,56 @@ const Checkout: React.FC = () => {
 
     setIsPlacing(true);
     try {
-      const { createDocument, getNextOrderNumber } = await import('../lib/adminDb');
-      
-      const nextId = await getNextOrderNumber();
-      
-      const orderData = {
-        orderNumber: nextId,
-        customerName: `${formData.firstName} ${formData.lastName}`,
-        email: formData.email,
-        phone: formData.phone,
-        address: `${formData.address}, ${formData.city} - ${formData.pincode}`,
-        total: total,
-        status: 'Pending',
-        paymentStatus: 'Pending',
-        subtotal: subtotal,
-        totalDiscount: totalDiscount,
-        couponApplied: appliedCoupon ? {
-          code: appliedCoupon.code,
-          discountAmount: couponDiscountAmount
-        } : null,
-        bundlesApplied: appliedBundles.map(b => ({
-          name: b.name,
-          discountPercentage: b.discountPercentage
-        })),
-        items: cartItems.map(item => ({
-          productId: item.id,
-          name: item.name,
-          price: item.price,
-          quantity: 1,
-          image: item.image || ''
-        })),
-        createdAt: new Date().toISOString()
+      const customerName = `${formData.firstName} ${formData.lastName}`.trim();
+      const shippingAddress = {
+        address: formData.address,
+        city: formData.city,
+        pincode: formData.pincode,
       };
 
-      await createDocument('orders', orderData);
+      // ── POST to Supabase-backed API route ──────────────────────────────
+      const res = await fetch('/api/create-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customerName,
+          customerEmail: formData.email,
+          customerPhone: formData.phone,
+          shippingAddress,
+          items: cartItems.map(item => ({
+            productId: item.product_id,
+            name: item.product?.name,
+            price: item.product?.price,
+            quantity: item.quantity,
+            image: item.product?.images?.[0] || ''
+          })),
+          subtotal,
+          discount: totalDiscount,
+          couponCode: appliedCoupon?.code || null,
+          total,
+          guestId, // Include guestId in the payload
+        }),
+      });
 
-      const customerData = {
-        name: `${formData.firstName} ${formData.lastName}`,
-        email: formData.email,
-        phone: formData.phone,
-        address: `${formData.address}, ${formData.city} - ${formData.pincode}`,
-        lastOrderDate: new Date().toISOString(),
-        status: 'Active'
-      };
-      
-      await createDocument('customers', customerData);
+      if (res.status === 429) {
+        alert('Too many order attempts. Please wait a moment and try again.');
+        return;
+      }
 
-      setOrderNumber(nextId);
+      const data = await res.json();
+
+      if (!res.ok) {
+        console.error('Order creation error:', data);
+        alert('Failed to create order. Please try again.');
+        return;
+      }
+
+      setOrderNumber(data.orderNumber);
       setOrderConfirmed(true);
-      
-      // Redirect to Razorpay payment gateway
+      await clearCart(); // Remove from Supabase
+
       window.location.href = "https://rzp.io/rzp/ZJ3foBWO";
-      
+
     } catch (err) {
       console.error("Error placing order:", err);
       alert("Failed to place order. Please try again.");
@@ -250,7 +253,7 @@ const Checkout: React.FC = () => {
         <p className="text-lg text-slate-600 mb-8">
           Thank you for your order. Your order ID is <span className="font-bold text-primary">{orderNumber}</span>.
         </p>
-        <button 
+        <button
           onClick={() => window.location.href = '/'}
           className="bg-primary hover:bg-[#c07a28] text-white font-bold py-3 px-8 rounded-xl transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
         >
@@ -326,32 +329,42 @@ const Checkout: React.FC = () => {
               <h3 className="text-xl font-bold serif mb-6 border-b border-cream-dark pb-4 text-forest">Order Summary</h3>
 
               <div className="space-y-5 mb-6">
-                {cartItems.length === 0 ? (
+                {cartLoading ? (
+                  <CartSkeleton />
+                ) : cartItems.length === 0 ? (
                   <p className="text-center text-slate-500 py-4">Your cart is empty.</p>
                 ) : (
-                  cartItems.map((item, idx) => {
-                    const isPartInBundle = usedProductIds.has(item.id);
+                  cartItems.map((item) => {
+                    const isPartInBundle = usedProductIds.has(item.product_id);
                     return (
-                      <div key={idx} className="flex gap-4 relative group">
+                      <div key={item.id} className="flex gap-4 relative group">
                         <div className="size-20 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-center overflow-hidden flex-shrink-0">
-                          {item.image ? (
-                            <img src={item.image} className="w-full h-full object-cover" alt={item.name} />
+                          {item.product?.images?.[0] ? (
+                            <img src={item.product.images[0]} className="w-full h-full object-cover" alt={item.product.name} />
                           ) : (
                             <span className="material-symbols-outlined text-slate-300 text-3xl">image</span>
                           )}
                         </div>
                         <div className="flex-1 py-1">
-                          <p className="text-sm font-bold leading-tight text-slate-800 line-clamp-2 pr-6">{item.name}</p>
-                          <p className="text-xs text-slate-500 mt-1">Qty: 1</p>
+                          <p className="text-sm font-bold leading-tight text-slate-800 line-clamp-2 pr-6">{item.product?.name}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <button onClick={() => decreaseQty(item.product_id)} className="text-slate-500 hover:text-primary">
+                              <span className="material-symbols-outlined text-[14px]">remove</span>
+                            </button>
+                            <p className="text-xs text-slate-500 font-bold">Qty: {item.quantity}</p>
+                            <button onClick={() => increaseQty(item.product_id)} className="text-slate-500 hover:text-primary">
+                              <span className="material-symbols-outlined text-[14px]">add</span>
+                            </button>
+                          </div>
                           <div className="flex items-baseline gap-2 mt-2">
-                            <p className="text-sm font-bold text-primary">₹{item.price}</p>
+                            <p className="text-sm font-bold text-primary">₹{(item.product?.price ?? 0) * item.quantity}</p>
                             {isPartInBundle && (
                               <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">Bundle Applied</span>
                             )}
                           </div>
                         </div>
-                        <button 
-                          onClick={() => handleRemoveItem(idx)}
+                        <button
+                          onClick={() => handleRemoveItem(item.product_id)}
                           className="absolute top-0 right-0 p-1 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity bg-white rounded-md"
                           title="Remove item"
                         >
@@ -368,21 +381,21 @@ const Checkout: React.FC = () => {
                   <span>Subtotal</span>
                   <span className="font-medium">₹{subtotal}</span>
                 </div>
-                
+
                 {appliedBundles.length > 0 && (
                   <div className="flex justify-between text-green-600 font-bold text-sm">
                     <span>Bundle Discount</span>
                     <span>-₹{totalBundleDiscount}</span>
                   </div>
                 )}
-                
+
                 {appliedCoupon && (
                   <div className="flex justify-between text-green-600 font-bold text-sm">
                     <span>Coupon ({appliedCoupon.code})</span>
                     <span>-₹{couponDiscountAmount}</span>
                   </div>
                 )}
-                
+
                 <div className="flex justify-between text-xl font-bold pt-3 border-t border-slate-100 mt-3 text-forest">
                   <span>Total</span>
                   <span className="text-primary">₹{total}</span>
@@ -398,7 +411,7 @@ const Checkout: React.FC = () => {
                       <span className="material-symbols-outlined text-lg">check_circle</span>
                       <span className="font-bold text-sm">{appliedCoupon.code} Applied</span>
                     </div>
-                    <button 
+                    <button
                       onClick={handleRemoveCoupon}
                       className="text-xs text-red-600 hover:text-red-800 font-bold uppercase hover:bg-red-50 px-2 py-1 rounded transition-colors"
                     >
@@ -408,7 +421,7 @@ const Checkout: React.FC = () => {
                 ) : (
                   <div className="flex flex-col gap-2">
                     <div className="flex gap-2">
-                      <input 
+                      <input
                         type="text"
                         value={couponCode}
                         onChange={(e) => {
@@ -418,7 +431,7 @@ const Checkout: React.FC = () => {
                         placeholder="Enter coupon code"
                         className="flex-1 rounded-xl border border-cream-dark h-12 px-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary uppercase transition-all"
                       />
-                      <button 
+                      <button
                         onClick={handleApplyCoupon}
                         disabled={!couponCode.trim()}
                         className="bg-slate-900 hover:bg-black disabled:bg-slate-300 text-white px-5 rounded-xl text-sm font-bold transition-colors"
@@ -436,7 +449,7 @@ const Checkout: React.FC = () => {
                 )}
               </div>
 
-              <button 
+              <button
                 onClick={handlePlaceOrder}
                 disabled={isPlacing || cartItems.length === 0}
                 className="w-full bg-primary hover:bg-[#c07a28] disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl mt-8 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 flex items-center justify-center gap-2"

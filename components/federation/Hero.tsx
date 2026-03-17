@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
+import LiveEditable from '../admin/LiveEditable';
 
 export default function Hero() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -97,17 +98,9 @@ export default function Hero() {
                 </motion.svg>
 
                 <h1 className="text-4xl sm:text-6xl md:text-[90px] leading-none mb-8 text-[#C9A84C] font-[var(--font-cormorant)]">
-                    {words.map((word, i) => (
-                        <motion.span
-                            key={i}
-                            className="inline-block mr-[0.25em]"
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.6, delay: i * 0.1, ease: 'easeOut' }}
-                        >
-                            {word}
-                        </motion.span>
-                    ))}
+                    <LiveEditable collection="site_content" docId="federation_hero" field="headline" multiline className="block w-full">
+                        {headlineText}
+                    </LiveEditable>
                 </h1>
 
                 <motion.p 
@@ -116,7 +109,7 @@ export default function Hero() {
                     animate={{ opacity: 1 }}
                     transition={{ duration: 1, delay: 1.5 }}
                 >
-                    A legacy of healing, verified by modern research.
+                    <LiveEditable collection="site_content" docId="federation_hero" field="subtext">A legacy of healing, verified by modern research.</LiveEditable>
                 </motion.p>
 
                 <motion.div 

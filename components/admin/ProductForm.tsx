@@ -1,9 +1,9 @@
 "use client";
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { useDropzone } from 'react-dropzone';
 import dynamic from 'next/dynamic';
 import 'react-quill-new/dist/quill.snow.css';
+import ImageUploader from '../ImageUploader';
 
 // Dynamically import Quill to avoid SSR issues
 const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false });
@@ -44,30 +44,13 @@ export default function ProductForm({ initialData = null, productId = '', isEdit
   const [categories, setCategories] = useState<{id: string, name: string}[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   
-  // Dropzone setup
-  const onDrop = useCallback(async (acceptedFiles: File[]) => {
-    // Process files and upload to API endpoint
-    const newImgs = [...images];
-    for (const file of acceptedFiles) {
-      if (newImgs.length >= 5) break; // Limit to 5
-      
-      const formData = new FormData();
-      formData.append('file', file);
-      try {
-        const res = await fetch('/api/admin/products/upload-image', {
-          method: 'POST',
-          body: formData,
-        });
-        const data = await res.json();
-        if (data.url) newImgs.push(data.url);
-      } catch (err) {
-        console.error("Upload failed", err);
-      }
-    }
-    setImages(newImgs);
-  }, [images]);
-  
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop, accept: {'image/*': []} });
+  const handleNewImage = (urls: string[]) => {
+    setImages(prev => [...prev, ...urls].slice(0, 5)); // Limit to 5
+  };
+
+  const handleSingleImage = (url: string) => {
+    setImages(prev => [...prev, url].slice(0, 5));
+  };
 
   useEffect(() => {
     // Load existing categories
@@ -218,11 +201,17 @@ export default function ProductForm({ initialData = null, productId = '', isEdit
           {/* Media */}
           <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
             <h3 className="text-lg font-bold text-slate-800 mb-4">Product Images</h3>
-            <div {...getRootProps()} className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${isDragActive ? 'border-forest bg-green-50' : 'border-slate-300 hover:border-forest/50 bg-slate-50'}`}>
-              <input {...getInputProps()} />
-              <span className="material-symbols-outlined text-4xl text-slate-400 mb-2">cloud_upload</span>
-              <p className="text-slate-600 font-medium">Drag & drop images here, or click to select</p>
-              <p className="text-xs text-slate-400 mt-1">Accepts images (max 5)</p>
+            
+            <div className="mb-6">
+              <ImageUploader
+                bucket="product-images"
+                folder={`products/${productId || 'new'}`}
+                onUpload={handleSingleImage}
+                onUploadMultiple={handleNewImage}
+                multiple={true}
+                label="Add Product Images"
+              />
+              <p className="text-xs text-slate-400 mt-2">Accepts images (max 5)</p>
             </div>
             {images.length > 0 && (
               <div className="flex gap-4 mt-6 overflow-x-auto pb-2">

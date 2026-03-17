@@ -3,11 +3,15 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import AdminPanelFloatingLink from '../../../components/admin/AdminPanelFloatingLink';
-import { subscribeToDocument } from '../../../lib/adminDb';
+import { subscribeToDocument, updateDocument } from '../../../lib/adminDb';
 import LiveEditable from '../../../components/admin/LiveEditable';
+import EditorImage from '../../../components/EditorImage';
+import { useAdmin } from '../../../components/admin/AdminContext';
 
 export default function FoundersPage() {
     const [content, setContent] = useState<any>({});
+    const { isEditMode, isAdmin } = useAdmin();
+    const editorActive = isEditMode && isAdmin;
 
     useEffect(() => {
         const unsubscribe = subscribeToDocument('content', 'founders', (data) => {
@@ -40,10 +44,17 @@ export default function FoundersPage() {
                     <div className="relative group order-2 lg:order-1">
                         <div className="absolute inset-0 bg-primary/20 rounded-[2rem] transform -translate-x-4 translate-y-4 -z-10 group-hover:-translate-x-6 group-hover:translate-y-6 transition-transform duration-500"></div>
                         <div className="rounded-[2rem] w-full aspect-[4/5] object-cover shadow-2xl overflow-hidden relative grayscale hover:grayscale-0 transition-all duration-700">
-                            <img
-                                src="/images/founder_1.png"
+                            <EditorImage
+                                src={content.founder1Image || "/images/founder_1.png"}
                                 alt="Dr. Narasimham Jammi"
                                 className="w-full h-full object-cover object-top"
+                                bucket="site-assets"
+                                folder="founders"
+                                editorActive={editorActive}
+                                onUpdate={(url) => {
+                                    updateDocument('content', 'founders', { founder1Image: url });
+                                    setContent((prev: any) => ({ ...prev, founder1Image: url }));
+                                }}
                             />
                         </div>
                         <div className="absolute top-6 left-6 w-16 h-16 bg-white/90 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/50 shadow-lg">
@@ -145,10 +156,17 @@ export default function FoundersPage() {
                     <div className="relative group">
                         <div className="absolute inset-0 bg-secondary/10 rounded-[2rem] transform translate-x-4 -translate-y-4 -z-10 group-hover:translate-x-6 group-hover:-translate-y-6 transition-transform duration-500"></div>
                         <div className="rounded-[2rem] w-full aspect-[4/5] object-cover shadow-2xl overflow-hidden relative grayscale hover:grayscale-0 transition-all duration-700">
-                            <img
-                                src="/images/founder_2.jpg"
+                            <EditorImage
+                                src={content.founder2Image || "/images/founder_2.jpg"}
                                 alt="Dr. Anitha Balachander"
                                 className="w-full h-full object-cover object-top"
+                                bucket="site-assets"
+                                folder="founders"
+                                editorActive={editorActive}
+                                onUpdate={(url) => {
+                                    updateDocument('content', 'founders', { founder2Image: url });
+                                    setContent((prev: any) => ({ ...prev, founder2Image: url }));
+                                }}
                             />
                         </div>
                         <div className="absolute bottom-6 right-6 w-16 h-16 bg-white/90 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/50 shadow-lg">

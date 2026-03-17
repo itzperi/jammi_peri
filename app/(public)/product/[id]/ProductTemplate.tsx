@@ -4,6 +4,12 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { subscribeToDocument, subscribeToCollection, createDocument } from '../../../../lib/adminDb';
 import { MOCK_PRODUCTS } from '../../../../constants';
+import { uploadFile } from '../../../../lib/storage';
+import { useCart } from '../../../../hooks/useCart';
+import LiveEditable from '../../../../components/admin/LiveEditable';
+import EditorImage from '../../../../components/EditorImage';
+import { useAdmin } from '../../../../components/admin/AdminContext';
+import { updateDocument } from '../../../../lib/adminDb';
 
 interface Product {
     id: string;
@@ -25,6 +31,8 @@ export default function ProductTemplate({ productId }: { productId: string }) {
     const [isLoading, setIsLoading] = useState(true);
     const [quantity, setQuantity] = useState(1);
     const [selectedAngle, setSelectedAngle] = useState(0);
+    const { addToCart } = useCart();
+    const { isAdmin, isEditMode } = useAdmin();
 
     // Reviews & Bundles
     const [reviews, setReviews] = useState<any[]>([]);
@@ -76,7 +84,7 @@ export default function ProductTemplate({ productId }: { productId: string }) {
         });
 
         const unsubBundles = subscribeToCollection('bundles', (b) => {
-            setBundles(b.filter(bundle => bundle.isActive && bundle.productIds.includes(productId)));
+            setBundles(b.filter(bundle => bundle.active && (bundle.product_ids || []).includes(productId)));
         });
 
         return () => {
@@ -93,15 +101,16 @@ export default function ProductTemplate({ productId }: { productId: string }) {
         try {
             let imageUrl = '';
             if (reviewImage) {
-                const formData = new FormData();
-                formData.append('file', reviewImage);
-                const res = await fetch('/api/admin/products/upload-image', {
-                    method: 'POST',
-                    body: formData
-                });
-                if (res.ok) {
-                    const data = await res.json();
-                    imageUrl = data.imageUrl;
+                try {
+                    const uploadedUrl = await uploadFile(
+                        reviewImage, 
+                        'review-images', 
+                        `reviews/${product.id}-${Date.now()}-${reviewImage.name.replace(/[^a-zA-Z0-9.\-_]/g, '')}`
+                    );
+                    if (uploadedUrl) imageUrl = uploadedUrl;
+                } catch (uploadErr) {
+                    console.error("Failed to upload review image", uploadErr);
+                    // Silently continue for the review itself
                 }
             }
 
@@ -179,7 +188,7 @@ export default function ProductTemplate({ productId }: { productId: string }) {
                                     key={angle.id}
                                     onClick={() => setSelectedAngle(index)}
                                     title={angle.label}
-                                    className={`w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-2xl border-2 overflow-hidden p-2 cursor-pointer shadow-sm transition-all duration-300 flex-shrink-0 flex items-center justify-center relative ${selectedAngle === index ? 'border-primary bg-primary/5' : 'border-secondary/10 bg-white dark:bg-slate-800 hover:border-primary/40'}`}
+                                    className={`w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-2xl border-2 overflow-hidden p-2 cursor-pointer shadow-sm transition-all duration-300 flex-shrink-0 flex items-center justify-center relative ${selectedAngle === index ? 'border-primary bg-primary/5' : 'border-secondary/10 bg-white hover:border-primary/40'}`}
                                 >
                                     {index === 0 ? (
                                         <img alt="thumbnail" className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal" src={product.image} />
@@ -190,16 +199,22 @@ export default function ProductTemplate({ productId }: { productId: string }) {
                             ))}
                         </div>
                         {/* Main Image Viewport */}
-                        <div className="flex-1 aspect-square sm:aspect-[4/5] bg-gradient-to-t from-slate-100 to-white dark:from-slate-900 dark:to-slate-800 rounded-[2rem] border border-secondary/5 flex items-center justify-center p-8 relative overflow-hidden group w-full">
+                        <div className="flex-1 aspect-square sm:aspect-[4/5] bg-white shadow-2xl rounded-[2rem] border border-secondary/5 flex items-center justify-center p-8 relative overflow-hidden group w-full">
                             <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                             <div className="absolute top-4 left-4 sm:top-6 sm:left-6 flex gap-2 z-10">
                                 <span className="bg-secondary text-white text-[9px] sm:text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-widest shadow-lg">{product.category}</span>
                             </div>
                             <div className="w-[85%] h-[85%] relative z-10 drop-shadow-2xl transition-all duration-700 ease-in-out" style={imageAngles[selectedAngle].style}>
-                                <img
-                                    alt={product.name}
-                                    className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal pointer-events-none"
+                                <EditorImage
                                     src={product.image}
+                                    alt={product.name}
+                                    bucket="product-images"
+                                    folder="products"
+                                    onUpdate={async (newUrl) => {
+                                        await updateDocument('products', product.id, { images: [newUrl] });
+                                    }}
+                                    editorActive={isAdmin && isEditMode}
+                                    className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal pointer-events-none"
                                 />
                             </div>
                         </div>
@@ -208,15 +223,25 @@ export default function ProductTemplate({ productId }: { productId: string }) {
                     {/* Details Column */}
                     <div className="flex flex-col pt-2 md:pt-4">
                         <div className="mb-2">
-                            <h2 className="text-4xl sm:text-5xl lg:text-[3.5rem] font-bold text-secondary dark:text-primary mb-2 sm:mb-3 leading-tight font-display">{product.name}</h2>
-                            <h3 className="text-xl sm:text-2xl font-light text-slate-500 dark:text-slate-400 tracking-wide">{product.label}</h3>
+                            <h2 className="text-4xl sm:text-5xl lg:text-[3.5rem] font-bold text-secondary dark:text-primary mb-2 sm:mb-3 leading-tight font-display">
+                                <LiveEditable collection="products" docId={product.id} field="name" className="block w-full">
+                                    {product.name}
+                                </LiveEditable>
+                            </h2>
+                            <h3 className="text-xl sm:text-2xl font-light text-slate-500 dark:text-slate-400 tracking-wide">
+                                <LiveEditable collection="products" docId={product.id} field="category_name" className="block w-full">
+                                    {product.label}
+                                </LiveEditable>
+                            </h3>
                         </div>
                         <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 mb-8 font-body leading-relaxed">
-                            {product.shortDesc}
+                            <LiveEditable collection="products" docId={product.id} field="description" multiline className="block w-full">
+                                {product.shortDesc}
+                            </LiveEditable>
                         </p>
 
                         {/* Price & Cart Actions */}
-                        <div className="bg-slate-50 dark:bg-slate-800/50 rounded-3xl p-6 md:p-8 border border-slate-200 dark:border-slate-700">
+                        <div className="bg-white rounded-3xl p-6 md:p-8 border border-slate-200 shadow-md">
                             <div className="flex justify-between items-end mb-6">
                                 <div>
                                     <p className="text-sm text-slate-500 font-bold mb-1">Price</p>
@@ -233,18 +258,23 @@ export default function ProductTemplate({ productId }: { productId: string }) {
                             </div>
 
                             <div className="flex flex-col sm:flex-row gap-4">
-                                <div className="flex border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 rounded-xl overflow-hidden h-14 w-full sm:w-36 shrink-0">
-                                    <button onClick={() => handleQuantityChange('decrease')} className="flex-1 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-slate-600 dark:text-slate-400 flex items-center justify-center">
+                                <div className="flex border-2 border-slate-200 bg-white rounded-xl overflow-hidden h-14 w-full sm:w-36 shrink-0">
+                                    <button onClick={() => handleQuantityChange('decrease')} className="flex-1 hover:bg-slate-50 transition-colors text-slate-600 flex items-center justify-center">
                                         <span className="material-symbols-outlined flex">remove</span>
                                     </button>
                                     <div className="flex-1 flex items-center justify-center font-bold text-lg select-none">
                                         {quantity}
                                     </div>
-                                    <button onClick={() => handleQuantityChange('increase')} className="flex-1 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-slate-600 dark:text-slate-400 flex items-center justify-center">
+                                    <button onClick={() => handleQuantityChange('increase')} className="flex-1 hover:bg-slate-50 transition-colors text-slate-600 flex items-center justify-center">
                                         <span className="material-symbols-outlined flex">add</span>
                                     </button>
                                 </div>
-                                <button className="flex-1 bg-secondary text-white font-bold text-base sm:text-lg h-14 rounded-xl shadow-lg shadow-secondary/20 hover:bg-slate-800 transition-all flex items-center justify-center gap-3">
+                                <button 
+                                    onClick={async () => {
+                                        await addToCart(product.id, quantity);
+                                        alert('Added to cart!');
+                                    }}
+                                    className="flex-1 bg-secondary text-white font-bold text-base sm:text-lg h-14 rounded-xl shadow-lg shadow-secondary/20 hover:bg-slate-800 transition-all flex items-center justify-center gap-3">
                                     <span className="material-symbols-outlined flex">shopping_basket</span>
                                     Add to Cart
                                 </button>
@@ -273,10 +303,10 @@ export default function ProductTemplate({ productId }: { productId: string }) {
                             {bundles.map(bundle => (
                                 <div key={bundle.id} className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex items-center gap-6">
                                     <div className="w-24 h-24 bg-slate-100 rounded-xl overflow-hidden shrink-0">
-                                        {bundle.imageUrl ? <img src={bundle.imageUrl} className="w-full h-full object-cover" /> : <span className="material-symbols-outlined text-4xl text-slate-300 w-full h-full flex justify-center items-center">image</span>}
+                                        {bundle.image_url ? <img src={bundle.image_url} className="w-full h-full object-cover" /> : <span className="material-symbols-outlined text-4xl text-slate-300 w-full h-full flex justify-center items-center">image</span>}
                                     </div>
                                     <div className="flex-1">
-                                        <div className="inline-block bg-saffron text-white text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded mb-2">{bundle.discountPercentage}% OFF Bundle</div>
+                                        <div className="inline-block bg-saffron text-white text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded mb-2">{bundle.discount_percent}% OFF Bundle</div>
                                         <h4 className="text-lg font-bold text-slate-800">{bundle.name}</h4>
                                         <p className="text-sm text-slate-500 line-clamp-2 mt-1">{bundle.description}</p>
                                         <button className="mt-4 text-primary font-bold text-sm hover:underline">View Bundle Details →</button>
@@ -288,7 +318,7 @@ export default function ProductTemplate({ productId }: { productId: string }) {
                 )}
 
                 {/* Reviews Section */}
-                <section className="mb-16 sm:mb-24 bg-white dark:bg-slate-900 p-8 sm:p-12 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                <section className="mb-16 sm:mb-24 bg-white p-8 sm:p-12 rounded-3xl border border-slate-200 shadow-sm">
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
                         {/* Write a Review */}
                         <div className="lg:col-span-1">
@@ -349,10 +379,10 @@ export default function ProductTemplate({ productId }: { productId: string }) {
                                 </div>
                             ) : (
                                 reviews.map(review => (
-                                    <div key={review.id} className="p-6 bg-slate-50 dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700">
+                                    <div key={review.id} className="p-6 bg-slate-50 rounded-2xl border border-slate-100">
                                         <div className="flex justify-between items-start mb-3">
                                             <div>
-                                                <h4 className="font-bold text-slate-900 dark:text-white text-lg">{review.customerName}</h4>
+                                                <h4 className="font-bold text-slate-900 text-lg">{review.customerName}</h4>
                                                 <span className="text-xs text-slate-500">{new Date(review.createdAt).toLocaleDateString()}</span>
                                             </div>
                                             <div className="flex text-saffron">

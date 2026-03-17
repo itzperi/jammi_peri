@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { subscribeToCollection, updateDocument } from '../../../lib/adminDb';
 
 interface OrderItem {
@@ -19,12 +20,14 @@ interface Order {
   address: string;
   total: number;
   paymentStatus: 'Paid' | 'Pending' | 'Failed' | 'Refunded';
-  status: 'Pending' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
+  status: 'Pending' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled' | 'Completed';
   createdAt: string;
   items: OrderItem[];
   trackingNumber?: string;
   courierName?: string;
   paymentMethod?: string;
+  // Supabase fields
+  supabase_id?: string;
 }
 
 export default function AdminOrders() {
@@ -38,6 +41,7 @@ export default function AdminOrders() {
   const [newStatus, setNewStatus] = useState<Order['status']>('Pending');
   const [trackingNo, setTrackingNo] = useState('');
   const [courier, setCourier] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     setIsLoading(true);
@@ -59,17 +63,50 @@ export default function AdminOrders() {
   const handleUpdateOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedOrder) return;
+    setIsSaving(true);
     try {
       await updateDocument('orders', selectedOrder.id, {
         status: newStatus,
         trackingNumber: trackingNo,
         courierName: courier
       });
-      // update local
-      setOrders(orders.map(o => o.id === selectedOrder.id ? { ...o, status: newStatus, trackingNumber: trackingNo, courierName: courier } : o));
+      // update local state
+      setOrders(orders.map(o => o.id === selectedOrder.id
+        ? { ...o, status: newStatus, trackingNumber: trackingNo, courierName: courier }
+        : o
+      ));
+
+      // ── Trigger shipping email when marked Completed ───────────────────
+      if (newStatus === 'Completed') {
+        // Use supabase_id if available, else fall back to firebase id
+        const orderIdForEmail = selectedOrder.supabase_id || selectedOrder.id;
+        const res = await fetch('/api/send-shipping-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orderId: orderIdForEmail,
+            courierName: courier || undefined,
+            trackingId: trackingNo || undefined,
+          }),
+        });
+        if (res.ok) {
+          toast.success(`✅ Order saved & shipping email sent to ${selectedOrder.email}`);
+        } else if (res.status === 429) {
+          toast.error('Email rate limit hit — wait a moment and retry.');
+        } else {
+          toast.success('Order saved ✓');
+          toast.error('Shipping email failed — check server logs.');
+        }
+      } else {
+        toast.success('Order updated ✓');
+      }
+
       setSelectedOrder(null);
     } catch (err) {
-      console.error("Error updating order", err);
+      console.error('Error updating order', err);
+      toast.error('Failed to update order.');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -115,6 +152,7 @@ export default function AdminOrders() {
           <option value="Processing">Processing</option>
           <option value="Shipped">Shipped</option>
           <option value="Delivered">Delivered</option>
+          <option value="Completed">✅ Completed (sends email)</option>
           <option value="Cancelled">Cancelled</option>
         </select>
         <select 
@@ -187,6 +225,7 @@ export default function AdminOrders() {
                         order.status === 'Processing' ? 'bg-blue-100 text-blue-800' :
                         order.status === 'Shipped' ? 'bg-indigo-100 text-indigo-800' :
                         order.status === 'Delivered' ? 'bg-green-100 text-green-800' :
+                        order.status === 'Completed' ? 'bg-emerald-100 text-emerald-800' :
                         'bg-red-100 text-red-800'
                       }`}>
                         {order.status || 'Pending'}
@@ -299,6 +338,7 @@ export default function AdminOrders() {
                       <option value="Processing">Processing</option>
                       <option value="Shipped">Shipped</option>
                       <option value="Delivered">Delivered</option>
+                      <option value="Completed">✅ Completed — sends shipping email</option>
                       <option value="Cancelled">Cancelled</option>
                     </select>
                   </div>
@@ -328,9 +368,10 @@ export default function AdminOrders() {
                      <span className="material-symbols-outlined text-[18px]">print</span>
                      Print Invoice
                    </button>
-                   <button type="submit" className="px-6 py-2 bg-forest text-white rounded text-sm font-bold hover:bg-forest/90 transition-colors">
-                     Save Updates
-                   </button>
+                 <button type="submit" disabled={isSaving} className="px-6 py-2 bg-forest text-white rounded text-sm font-bold hover:bg-forest/90 transition-colors disabled:opacity-60 flex items-center gap-2">
+                   {isSaving && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
+                   {isSaving ? 'Saving...' : (newStatus === 'Completed' ? '✅ Save & Send Email' : 'Save Updates')}
+                 </button>
                 </div>
               </form>
             </div>

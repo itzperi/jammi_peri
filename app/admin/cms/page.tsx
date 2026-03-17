@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { fetchCollection, createDocument, updateDocument, deleteDocument } from '../../../lib/adminDb';
+import ImageUploader from '../../../components/ImageUploader';
 
 interface BlogPost {
   id: string;
@@ -431,8 +432,9 @@ export default function AdminCMS() {
               <input type="text" value={bannerTitle} onChange={e => setBannerTitle(e.target.value)} required className="w-full border border-slate-300 rounded px-4 py-2 focus:outline-none focus:border-forest" /></div>
               <div><label className="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">Subtitle</label>
               <input type="text" value={bannerSubtitle} onChange={e => setBannerSubtitle(e.target.value)} className="w-full border border-slate-300 rounded px-4 py-2 focus:outline-none focus:border-forest" /></div>
-              <div><label className="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">Image URL</label>
-              <input type="url" value={bannerImage} onChange={e => setBannerImage(e.target.value)} required className="w-full border border-slate-300 rounded px-4 py-2 focus:outline-none focus:border-forest" /></div>
+              <div><label className="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">Image</label>
+              <ImageUploader bucket="site-assets" folder="banners" onUpload={(url) => setBannerImage(url)} currentUrl={bannerImage} label="Upload Banner Image" />
+              </div>
               <div><label className="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">Link</label>
               <input type="text" value={bannerLink} onChange={e => setBannerLink(e.target.value)} placeholder="/shop" className="w-full border border-slate-300 rounded px-4 py-2 focus:outline-none focus:border-forest" /></div>
               <div className="flex justify-end gap-3 mt-6 pt-4"><button type="button" onClick={() => setIsBannerModalOpen(false)} className="px-6 py-2.5 text-slate-600 font-bold hover:bg-slate-100 rounded">Cancel</button><button type="submit" className="bg-forest text-white px-6 py-2.5 rounded font-bold hover:bg-forest/90">Save Banner</button></div>
@@ -454,8 +456,9 @@ export default function AdminCMS() {
               <textarea value={blogExcerpt} onChange={e => setBlogExcerpt(e.target.value)} rows={2} required className="w-full border border-slate-300 rounded px-4 py-2 focus:outline-none focus:border-forest" /></div>
               <div><label className="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">Content</label>
               <textarea value={blogContent} onChange={e => setBlogContent(e.target.value)} rows={6} required className="w-full border border-slate-300 rounded px-4 py-2 focus:outline-none focus:border-forest font-mono text-sm" placeholder="<p>Write your blog post HTML here...</p>" /></div>
-              <div><label className="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">Cover Image URL</label>
-              <input type="url" value={blogImage} onChange={e => setBlogImage(e.target.value)} className="w-full border border-slate-300 rounded px-4 py-2 focus:outline-none focus:border-forest" /></div>
+              <div><label className="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">Cover Image</label>
+              <ImageUploader bucket="site-assets" folder="blogs" onUpload={(url) => setBlogImage(url)} currentUrl={blogImage} label="Upload Blog Cover" />
+              </div>
               <div className="flex justify-end gap-3 mt-6 pt-4"><button type="button" onClick={() => setIsBlogModalOpen(false)} className="px-6 py-2.5 text-slate-600 font-bold hover:bg-slate-100 rounded">Cancel</button><button type="submit" className="bg-forest text-white px-6 py-2.5 rounded font-bold hover:bg-forest/90">Publish Post</button></div>
             </form>
           </div>

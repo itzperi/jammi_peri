@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { db } from '../../../../lib/firebase';
-import { collection, getDocs, addDoc, query, orderBy } from 'firebase/firestore';
+import { supabaseAdmin } from '../../../../lib/supabase';
 import { MOCK_PRODUCTS } from '../../../../constants';
 
 export async function GET(request: Request) {
@@ -12,11 +11,14 @@ export async function GET(request: Request) {
     const status = searchParams.get('status') || '';
 
     let dbProducts: any[] = [];
-    if (db) {
+    if (supabaseAdmin) {
         try {
-            let q = query(collection(db, 'products'));
-            const snapshot = await getDocs(q);
-            dbProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            const { data, error } = await supabaseAdmin.from('products').select('*');
+            if (!error && data) {
+                dbProducts = data;
+            } else {
+                console.error("Supabase fetch products error:", error);
+            }
         } catch (e) {
             console.error("Error fetching admin products from DB:", e);
         }
@@ -60,14 +62,18 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
     try {
         const data = await request.json();
-        if (!db) {
+        if (!supabaseAdmin) {
             return NextResponse.json({ error: "Database not initialized" }, { status: 503 });
         }
-        const docRef = await addDoc(collection(db, 'products'), {
-            ...data,
-            createdAt: new Date().toISOString()
-        });
-        return NextResponse.json({ id: docRef.id, ...data });
+        
+        const { data: insertedData, error } = await supabaseAdmin.from('products').insert([{
+            ...data
+        }]).select('id').single();
+        
+        if (error) {
+            throw new Error(error.message);
+        }
+        return NextResponse.json({ id: insertedData.id, ...data });
     } catch(err: any) {
         return NextResponse.json({ error: err.message }, { status: 500 });
     }

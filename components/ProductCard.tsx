@@ -2,6 +2,7 @@
 "use client";
 import React from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 interface ProductCardProps {
   product: {
@@ -20,10 +21,12 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   return (
     <div className="group cursor-pointer" onClick={() => router.push(`/product/${product.id}`)}>
       <div className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-white mb-6 border border-primary/5 shadow-sm group-hover:shadow-md transition-all duration-500">
-        <img
+        <Image
           alt={product.name}
-          className="w-full h-full object-contain p-8 mix-blend-multiply group-hover:scale-105 transition-transform duration-700"
           src={product.image}
+          width={400}
+          height={533}
+          className="w-full h-full object-contain p-8 mix-blend-multiply group-hover:scale-105 transition-transform duration-700"
         />
         <div className="absolute top-4 left-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest text-primary border border-primary/10">
           {product.label}

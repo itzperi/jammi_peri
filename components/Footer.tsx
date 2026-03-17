@@ -14,13 +14,18 @@ const Footer: React.FC = () => {
 
   const [adminClicks, setAdminClicks] = useState(0);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
+  const [modalRole, setModalRole] = useState<'editor' | 'admin'>('admin');
   const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleLogoClick = () => {
-    // Thresholds: Home (5), Founders (3), Others (Ignore)
-    const threshold = pathname === '/' ? 5 : pathname === '/founders' ? 3 : null;
+    // Thresholds: Home (5), Founders (3), Heritage (3), Federation (3)
+    const threshold = pathname === '/' ? 5 : (pathname === '/founders' || pathname === '/heritage' || pathname === '/federation') ? 3 : null;
     
-    if (threshold === null) return;
+    // Check if it's a product page (starts with /product/)
+    const isProductPage = pathname?.startsWith('/product/');
+    const finalThreshold = isProductPage ? 3 : threshold;
+
+    if (finalThreshold === null) return;
 
     const newClicks = adminClicks + 1;
     setAdminClicks(newClicks);
@@ -29,13 +34,16 @@ const Footer: React.FC = () => {
       clearTimeout(clickTimeoutRef.current);
     }
 
-    if (newClicks >= threshold) {
+    if (newClicks >= finalThreshold) {
+      // Determine role: editor for federation and product pages, admin for others
+      const role = (pathname === '/federation' || isProductPage) ? 'editor' : 'admin';
       setIsAdminModalOpen(true);
+      setModalRole(role); // Need to add this state
       setAdminClicks(0);
     } else {
       clickTimeoutRef.current = setTimeout(() => {
         setAdminClicks(0);
-      }, 5000);
+      }, 2000);
     }
   };
 
@@ -109,6 +117,7 @@ const Footer: React.FC = () => {
       <AdminLoginModal 
         isOpen={isAdminModalOpen} 
         onClose={() => setIsAdminModalOpen(false)} 
+        roleToGrant={modalRole}
       />
     </footer>
   );

@@ -7,8 +7,9 @@ export default function AdminPanelFloatingLink() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const session = localStorage.getItem("jammi_admin_session");
-      if (session === "true") {
+      const session = sessionStorage.getItem("jammi_admin_session");
+      const role = sessionStorage.getItem("jammi_role");
+      if (session === "true" && role !== "editor") {
         setIsAdmin(true);
       }
     }

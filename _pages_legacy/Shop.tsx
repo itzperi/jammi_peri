@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import ProductCard from '../components/ProductCard';
-import { subscribeToCollection } from '../lib/adminDb';
+import { supabase } from '../lib/supabase';
 import { MOCK_PRODUCTS } from '../constants';
 import LiveEditable from '../components/admin/LiveEditable';
 
@@ -35,10 +35,18 @@ const Shop: React.FC = () => {
       setIsLoading(false);
     };
 
-    const unsubProd = subscribeToCollection('products', (p) => {
-      currentProducts = p
-        .filter((prod: any) => !prod.deleted && prod.status !== 'Draft')
-        .map((prod: any) => ({
+    const fetchShopData = async () => {
+      // Fetch Products (limit 12 - 0 to 11, specific columns)
+      const { data: prodData } = await supabase
+        .from('products')
+        .select('id, name, category, description, shortDesc, basePrice, price, images, image, status, deleted')
+        .neq('deleted', true)
+        .neq('status', 'Draft')
+        .order('created_at', { ascending: false })
+        .range(0, 11);
+
+      if (prodData) {
+        currentProducts = prodData.map((prod: any) => ({
           id: prod.id,
           name: prod.name,
           label: prod.category || 'Wellness',
@@ -48,17 +56,27 @@ const Shop: React.FC = () => {
           category: prod.category || 'Wellness',
           status: prod.status || 'Published'
         }));
-      updateState();
-    });
+      }
 
-    const unsubCat = subscribeToCollection('categories', (c) => {
-      currentCategories = c;
+      // Fetch Categories
+      const { data: catData } = await supabase.from('categories').select('name');
+      if (catData) {
+        currentCategories = catData;
+      }
+
       updateState();
-    });
+    };
+
+    fetchShopData();
+
+    // Setup realtime specifically for shop data refresh
+    const channel = supabase.channel('shop_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, () => fetchShopData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'categories' }, () => fetchShopData())
+      .subscribe();
 
     return () => {
-      unsubProd();
-      unsubCat();
+      supabase.removeChannel(channel);
     };
   }, []);
 
@@ -88,8 +106,15 @@ const Shop: React.FC = () => {
         </div>
 
         {isLoading ? (
-          <div className="flex justify-center items-center py-20">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-20">
+            {Array.from({ length: 9 }).map((_, i) => (
+              <div key={i} className="animate-pulse flex flex-col gap-4">
+                <div className="w-full aspect-square bg-slate-200 rounded-3xl" />
+                <div className="h-6 bg-slate-200 rounded w-3/4" />
+                <div className="h-4 bg-slate-200 rounded w-1/2" />
+                <div className="h-6 bg-slate-200 rounded w-1/4 mt-2" />
+              </div>
+            ))}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-20">

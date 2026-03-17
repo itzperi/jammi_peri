@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { subscribeToCollection, deleteDocument, createDocument, updateDocument } from '../../../lib/adminDb';
 import { useFederationStore } from '../../../store/federationStore';
+import ImageUploader from '../../../components/ImageUploader';
 
 interface Category {
   id: string;
@@ -9,6 +10,7 @@ interface Category {
   slug: string;
   parentCategory?: string | null;
   description?: string;
+  image?: string;
   productCount?: number;
 }
 
@@ -22,6 +24,7 @@ export default function AdminCategories() {
   const [newCatSlug, setNewCatSlug] = useState('');
   const [newCatParent, setNewCatParent] = useState('');
   const [newCatDesc, setNewCatDesc] = useState('');
+  const [newCatImage, setNewCatImage] = useState('');
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
   
@@ -67,6 +70,7 @@ export default function AdminCategories() {
         slug: newCatSlug,
         parentCategory: newCatParent || null,
         description: newCatDesc,
+        image: newCatImage,
       };
       
       let finalCategoryId = editingCategoryId;
@@ -110,6 +114,7 @@ export default function AdminCategories() {
       setNewCatSlug('');
       setNewCatParent('');
       setNewCatDesc('');
+      setNewCatImage('');
       setSelectedProductIds([]);
   };
 
@@ -124,6 +129,7 @@ export default function AdminCategories() {
     setNewCatSlug(cat.slug);
     setNewCatParent(cat.parentCategory || '');
     setNewCatDesc(cat.description || '');
+    setNewCatImage(cat.image || '');
     setSelectedProductIds(products.filter(p => p.category === cat.name).map(p => p.id));
     setIsModalOpen(true);
   };
@@ -344,6 +350,16 @@ export default function AdminCategories() {
                     rows={2}
                     className="w-full border border-slate-200 rounded-lg px-4 py-3 focus:outline-none focus:border-forest focus:ring-1 focus:ring-forest/50 transition-all resize-none"
                     placeholder="Briefly describe this category..."
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-bold text-slate-700 mb-1.5">Category Image</label>
+                  <ImageUploader 
+                    bucket="category-images"
+                    folder="categories"
+                    currentUrl={newCatImage}
+                    onUpload={(url) => setNewCatImage(url)}
+                    label="Upload Category Image"
                   />
                 </div>
                 

@@ -1,31 +1,62 @@
 "use client";
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { supabase } from '../../lib/supabase';
 
 interface AdminLoginModalProps {
   isOpen: boolean;
   onClose: () => void;
+  roleToGrant?: 'editor' | 'admin';
 }
 
-const AdminLoginModal: React.FC<AdminLoginModalProps> = ({ isOpen, onClose }) => {
-  const [username, setUsername] = useState('');
+const AdminLoginModal: React.FC<AdminLoginModalProps> = ({ isOpen, onClose, roleToGrant = 'admin' }) => {
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(false);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
   const router = useRouter();
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (username.trim() === 'JammiPharma' && password.trim() === 'Jammi@007') {
-      localStorage.setItem("jammi_admin_session", "true");
-      localStorage.setItem("jammi_edit_mode", "true");
+    setIsLoggingIn(true);
+    setError(false);
+
+    if (email.trim() === 'JammiPharma' && password.trim() === 'Jammi@007') {
+      setIsLoggingIn(false);
+      sessionStorage.setItem("jammi_admin_session", "true");
+      sessionStorage.setItem("jammi_role", roleToGrant);
+      if (roleToGrant === 'editor') {
+        sessionStorage.setItem("jammi_edit_mode", "true");
+      } else {
+        sessionStorage.setItem("jammi_edit_mode", "false");
+      }
       onClose();
-      // Use window.location.href to force a full reload so AdminPanelFloatingLink mounts cleanly
       window.location.reload();
-    } else {
+      return;
+    }
+
+    const { data, error: authError } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password: password.trim(),
+    });
+
+    setIsLoggingIn(false);
+
+    if (authError || !data.session) {
       setError(true);
       setTimeout(() => setError(false), 3000);
+    } else {
+      sessionStorage.setItem("jammi_admin_session", "true");
+      sessionStorage.setItem("jammi_role", roleToGrant);
+      if (roleToGrant === 'editor') {
+        sessionStorage.setItem("jammi_edit_mode", "true");
+      } else {
+        sessionStorage.setItem("jammi_edit_mode", "false");
+      }
+      onClose();
+      window.location.reload();
     }
   };
 
@@ -45,9 +76,9 @@ const AdminLoginModal: React.FC<AdminLoginModalProps> = ({ isOpen, onClose }) =>
           <div>
             <input 
               type="text" 
-              placeholder="Enter username"
-              value={username}
-              onChange={e => setUsername(e.target.value)}
+              placeholder="Enter email or username"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
               className="w-full border border-slate-300 rounded px-4 py-3 focus:outline-none focus:border-forest transition-colors"
               required
             />
@@ -67,9 +98,10 @@ const AdminLoginModal: React.FC<AdminLoginModalProps> = ({ isOpen, onClose }) =>
           )}
           <button 
             type="submit" 
-            className="w-full bg-forest text-white font-bold py-3 rounded mt-2 hover:bg-forest/90 transition-colors"
+            disabled={isLoggingIn}
+            className="w-full bg-forest text-white font-bold py-3 rounded mt-2 hover:bg-forest/90 disabled:bg-slate-400 transition-colors"
           >
-            Login
+            {isLoggingIn ? 'Logging in...' : 'Login'}
           </button>
         </form>
       </div>

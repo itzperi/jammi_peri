@@ -1,9 +1,11 @@
 "use client";
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useCart } from '../hooks/useCart';
 
 const Navbar: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { totalItems: cartCount } = useCart();
 
   return (
     <>
@@ -35,7 +37,11 @@ const Navbar: React.FC = () => {
             </Link>
             <Link href="/checkout" className="p-2 hover:bg-forest/10 rounded-full transition-all relative text-forest group">
               <span className="material-symbols-outlined text-[28px] group-hover:scale-110 transition-transform">shopping_cart</span>
-              <span className="absolute top-0 right-0 w-5 h-5 bg-red-500 text-white text-[11px] flex justify-center items-center rounded-full font-bold shadow-sm border border-white">2</span>
+              {cartCount > 0 && (
+                <span className="absolute top-0 right-0 w-5 h-5 bg-red-500 text-white text-[11px] flex justify-center items-center rounded-full font-bold shadow-sm border border-white">
+                  {cartCount}
+                </span>
+              )}
             </Link>
             <button className="p-2 hover:bg-forest/10 rounded-full transition-colors text-forest hidden sm:block">
               <span className="material-symbols-outlined text-[28px]">account_circle</span>
